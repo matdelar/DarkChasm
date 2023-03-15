@@ -35,8 +35,9 @@ class Player:
     
         self.hook = None
         self.hookVelocity = [0,0]
-        self.actualHookSpeed = [0,0]
-        self.HookMaxVelocity = 1/60 * self.maxSpeed * (16*12)
+        self.actualHookSpeed = 0
+        self.hookSpeedIncrese = 1/60 * self.maxSpeed * 2
+        self.hookMaxVelocity = 1/60 * self.maxSpeed * (16*12)
 
         self.lastpos = [0,0]
         self.hookoffset = 7*self.scale, 14*self.scale
@@ -72,10 +73,10 @@ class Player:
 
     def update(self,tiles,scroll):
         keys = pygame.key.get_pressed()
-        mstate = pygame.mouse.get_pressed()[0]
+        mouseClick = pygame.mouse.get_pressed()[0]
 
         #hook controller
-        if mstate and not isinstance(self.hook,Hook):
+        if mouseClick and not isinstance(self.hook,Hook):
 
             playerPosScroll = self.pos[0]-scroll[0]+self.size[0]//2,self.pos[1]-scroll[1]+self.size[1]//2
             centerPos = self.pos[0]+self.size[0]//2,self.pos[1]+self.size[1]//2
@@ -85,11 +86,11 @@ class Player:
             self.hook.update(tiles,self.pos)
             self.hook.draw(scroll, self.pos)
 
-        elif mstate and isinstance(self.hook,Hook) and self.hook.state != "dead":
+        elif mouseClick and isinstance(self.hook,Hook) and self.hook.state != "dead":
             self.hookVelocity = self.hook.update(tiles,self.pos)
             self.hook.draw(scroll, self.pos)
         
-        elif not mstate and isinstance(self.hook,Hook) and self.hook.state !="dead":
+        elif not mouseClick and isinstance(self.hook,Hook) and self.hook.state !="dead":
             self.hook.set_state("retracted")
             self.hook.update(tiles,self.pos)
             self.hook.draw(scroll, self.pos)
@@ -118,12 +119,12 @@ class Player:
 
         if self.hookVelocity != None and isinstance(self.hook,Hook):
 
-            movement = [self.actualspeed+self.hookVelocity[0]*self.HookMaxVelocity,self.hookVelocity[1]*self.HookMaxVelocity]
+            movement = [self.actualspeed+self.hookVelocity[0]*self.hookMaxVelocity,self.hookVelocity[1]*self.hookMaxVelocity]
         else:
             movement = [self.actualspeed,self.maxfallSpeed]
 
-        self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75
-        self.lastpos[1] += (self.pos[1]-self.lastpos[1])*0.75
+        self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.5
+        self.lastpos[1] += (self.pos[1]-self.lastpos[1])*0.5
 
 
         self.pos = self.move(movement,tiles)[0]
@@ -164,13 +165,9 @@ class Player:
 
         offshadowGroup = [or1,or2,or3,or4]
 
+        for nrect in offshadowGroup:
+            self.screen.blit(pygame.transform.flip(shadow, self.isFacingLeft, False), nrect)
 
-        if self.isFacingLeft == "left":
-            for nrect in offshadowGroup:
-                self.screen.blit(pygame.transform.flip(shadow, True, False), nrect)
-        elif self.isFacingLeft == "right":
-            for nrect in offshadowGroup:
-                self.screen.blit(shadow, nrect)
 
     def set_color(self,surface, color):
         w, h = surface.get_size()
