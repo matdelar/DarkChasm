@@ -7,9 +7,10 @@ pygame.init()
 screen = pygame.display.set_mode((800,600))
 pygame.display.set_caption("Dark Chasm")
 
-scene = Manager(screen)
 
 clock = pygame.time.Clock()
+
+scene = Manager(screen,clock)
 
 async def main():
 

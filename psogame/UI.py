@@ -72,5 +72,21 @@ class Transition:
             for y in range(self.yAmount):
                 pygame.draw.circle(self.screen,(0,0,0), [x*self.spacing,y*self.spacing], self.circleSizeActual)
     
-        
-        
+class Timer:
+    def __init__(self,screen,clock,pos,time = 0) -> None:
+        self.screen = screen
+        self.clock = clock
+        self.time = time
+        self.pos = pos
+        pygame.font.init()
+        #self.size = size[0],size[1]
+        self.font = pygame.font.Font("assets/invasion2000.ttf",18)
+    
+    def update(self):
+        self.time += self.clock.get_time()/1000
+
+    def draw(self):
+        pygame.draw.rect(self.screen,(50,10,50),((self.pos[0],self.pos[1]),(100,30)))
+        text1 = self.font.render(str(round(self.time,3)), False, (240,10,20))
+        self.screen.blit(text1, self.pos)
+

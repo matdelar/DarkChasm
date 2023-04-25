@@ -88,7 +88,7 @@ class Stone:
 
         if sides[1] and sides[2] and sides[3] and sides[4] and sides[5] and not sides[7]:
             self.type = 3
-        if sides[0] and sides[1] and sides[2] and not sides[3] and sides[6] and sides[7]:
+        if sides[0] and sides[1] and not sides[3] and sides[6] and sides[7]:
             self.type = 5
 
 

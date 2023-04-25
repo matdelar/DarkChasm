@@ -2,13 +2,13 @@ import pygame
 from Scenes import *
 
 class Manager:
-    def __init__(self, screen) -> None:
+    def __init__(self, screen,clock) -> None:
         self.screen = screen
         self.state = "menu"
         self.lastState = self.state
         self.sceneTrasition = Transition(self.screen,True,1,30)
         self.trasitionState = None
-        self.scenes = [Menu(screen),Play(screen)]
+        self.scenes = [Menu(screen,clock),Play(screen,clock)]
 
     def run(self):
 
