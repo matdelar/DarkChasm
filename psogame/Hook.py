@@ -35,7 +35,10 @@ class Hook:
                 self.state = "dead"
         
         elif self.state == "attached":
+            if self.distance <= 32: # distance should be less than backspd to avoid bugs
+                self.state = "dead"
             return -math.cos(math.pi*2-self.hookAngle),math.sin(math.pi*2-self.hookAngle)
+        
 
         self.rect.update(self.pos[0],self.pos[1],self.size[0],self.size[1])
         
