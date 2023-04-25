@@ -21,15 +21,15 @@ class Player:
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player4.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player5.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/plr.png"))
+        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/mask.png"))
 
-        self.size = 14*self.scale, 32*self.scale
+        self.size = 16*self.scale, 16*self.scale
         self.horizontalSpeed = 0
         self.isFacingLeft = False
 
-        self.currentSprite = 0
+        self.currentSprite = 6
         self.image = self.sprites[self.currentSprite]
-        self.frameCount = 7
+        self.frameCount = 6
 
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos[0]+24, self.pos[1]
@@ -178,3 +178,18 @@ class Player:
                 a = surface.get_at((x, y))[3]
                 surface.set_at((x, y), pygame.Color(r, g, b, a))
     
+    def set_mask_color(self,surface, primaryColor,secondaryColor):
+        nsurface = surface.copy()
+        w, h = nsurface.get_size()
+        r, g, b, a = primaryColor
+        r2, g2, b2, a = secondaryColor
+        for x in range(w):
+            for y in range(h):
+                a = nsurface.get_at((x, y))[3]
+                if nsurface.get_at((x,y))[0] == 0 and nsurface.get_at((x,y))[1] == 0 and nsurface.get_at((x,y))[2] == 0:
+                    nsurface.set_at((x, y), pygame.Color(r, g, b, a))
+                elif nsurface.get_at((x,y))[0] == 255 and nsurface.get_at((x,y))[1] == 255 and nsurface.get_at((x,y))[2] == 255:
+                    nsurface.set_at((x, y), pygame.Color(r2, g2, b2, a))
+        return nsurface
+    def get_sprite(self):
+        return pygame.transform.scale(self.sprites[self.currentSprite],(self.size))

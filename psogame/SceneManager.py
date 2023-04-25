@@ -8,7 +8,7 @@ class Manager:
         self.lastState = self.state
         self.sceneTrasition = Transition(self.screen,True,1,30)
         self.trasitionState = None
-        self.scenes = [Menu(screen,clock),Play(screen,clock)]
+        self.scenes = [Menu(screen,clock),Play(screen,clock),Edit(screen)]
 
     def run(self):
 
@@ -20,6 +20,9 @@ class Manager:
         elif self.state == "play":
             self.scenes[1].run()
             self.state = self.scenes[1].get_State()
+        elif self.state == "edit":
+            self.scenes[2].run()
+            self.state = self.scenes[2].get_State()
         elif self.state == "quit":
             pygame.quit()
 
