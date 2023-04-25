@@ -21,6 +21,7 @@ class Player:
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player4.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player5.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
+        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/plr.png"))
 
         self.size = 14*self.scale, 32*self.scale
         self.horizontalSpeed = 0
@@ -28,7 +29,7 @@ class Player:
 
         self.currentSprite = 0
         self.image = self.sprites[self.currentSprite]
-        self.frameCount = 0
+        self.frameCount = 7
 
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos[0]+24, self.pos[1]
@@ -137,7 +138,7 @@ class Player:
         newRect = (self.pos[0]-scroll[0],self.pos[1]-scroll[1]),(self.size)
 
         self.image = pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
-        self.frameCount +=1
+        #self.frameCount +=1
         if self.frameCount == 10:
             self.frameCount = 0
             self.currentSprite +=1 if self.currentSprite < 5 else -5

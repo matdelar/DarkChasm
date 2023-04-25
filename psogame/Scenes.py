@@ -4,10 +4,12 @@ from Entities import *
 from Player import *
 from Tiles import *
 import SceneManager
+import Database
 
 class Menu:
-    def __init__(self,screen) -> None:
+    def __init__(self,screen,clock) -> None:
         self.screen = screen
+        self.clock = clock
         self.buttonPlay = Button("play",screen,(100,100),(100,20),"Play",(255,255,255),(200,200,200),(10,10,10))
         self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200),(10,10,10))
         self.buttonQuit = Button("quit",screen,(100,160),(100,20),"Quit",(255,255,255),(200,200,200),(10,10,10))
@@ -45,13 +47,20 @@ class Menu:
         return self.newState
 
 class Play:
-    def __init__(self,screen) -> None:
+
+    def __init__(self,screen,clock) -> None:
         self.screen = screen
+        self.clock = clock
+        self.pixelSize = SceneManager.Manager.get_sprite_scale()
         self.maps = None
         self.newState = "play"
+        self.timer = Timer(self.screen,self.clock,(1*self.pixelSize,10*self.pixelSize),0)
         self.p = Player(self.screen, (32,64))
         self.a = TownMage(self.screen,(128,64))
+        self.db = Database.Database()
         
+        self.xLock = False
+
         self.map1 = [
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
         [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -91,13 +100,21 @@ class Play:
 
 
     def run(self):
-        self.scroll[0] += (self.p.rect.topleft[0]-self.scroll[0]-400-7*SceneManager.Manager.get_sprite_scale())/20 
-        self.scroll[1] += (self.p.rect.topleft[1]-self.scroll[1]-300-16*SceneManager.Manager.get_sprite_scale())/20
+        self.scroll[0] += (self.p.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
+        self.scroll[1] += (self.p.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         for tile in self.tiles:
             tile.draw(self.scroll)
         
         self.p.update(self.tiles,self.scroll)
         self.p.draw(self.scroll)
+
+        if pygame.key.get_pressed()[pygame.K_x] and not self.xLock:
+            self.xLock = True
+            self.db.insertRank("a",str(self.timer.time))
+
+
+        self.timer.update()
+        self.timer.draw()
 
     def get_State(self):
         return self.newState
