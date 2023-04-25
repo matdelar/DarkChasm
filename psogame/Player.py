@@ -11,8 +11,13 @@ class Player:
         self.actualspeed = 0
         self.speedIncrease = 1/60 * self.maxSpeed * 8
         self.speedDecrease = 1/60 * self.maxSpeed * 4
-        self.maxfallSpeed = 1/60 * self.scale * (16*10)
-        self.onFloor = False
+        self.gravityMaxSpeed = 1/60 * self.scale * (16*13)
+        self.gravityAceleration = 1/60 * self.scale * 8
+        self.gravityActualSpeed = 0
+        self.jumpForce = self.gravityMaxSpeed * 4/3
+        self.canJump = False
+        self.jumpMomentum = 0
+        self.collisionTypes = False
         
         self.sprites = []
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player1.png"))
@@ -21,15 +26,14 @@ class Player:
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player4.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player5.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/mask.png"))
 
-        self.size = 16*self.scale, 16*self.scale
+        self.size = 14*self.scale, 32*self.scale
         self.horizontalSpeed = 0
         self.isFacingLeft = False
 
-        self.currentSprite = 6
+        self.currentSprite = 0
         self.image = self.sprites[self.currentSprite]
-        self.frameCount = 6
+        self.frameCount = 0
 
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos[0]+24, self.pos[1]
@@ -37,8 +41,9 @@ class Player:
         self.hook = None
         self.hookVelocity = [0,0]
         self.actualHookSpeed = 0
-        self.hookSpeedIncrese = 1/60 * self.maxSpeed * 2
+        self.hookSpeedIncrease = 1/60 * self.maxSpeed * 8
         self.hookMaxVelocity = 1/60 * self.maxSpeed * (16*12)
+        self.hookMomentum = [0,0]
 
         self.lastpos = [0,0]
         self.hookoffset = 7*self.scale, 14*self.scale
@@ -91,16 +96,30 @@ class Player:
             self.hookVelocity = self.hook.update(tiles,self.pos)
             self.hook.draw(scroll, self.pos)
         
+            self.actualHookSpeed = self.actualHookSpeed + self.hookSpeedIncrease if self.actualHookSpeed + self.hookSpeedIncrease < self.hookMaxVelocity else self.hookMaxVelocity 
         elif not mouseClick and isinstance(self.hook,Hook) and self.hook.state !="dead":
             self.hook.set_state("retracted")
             self.hook.update(tiles,self.pos)
             self.hook.draw(scroll, self.pos)
+        
+        elif isinstance(self.hook,Hook) and self.hook.state == "attached":
+            if self.hookMomentum[0] == self.hookMomentum[1] == 0:
+                self.hookMomentum = self.hook.update(tiles,self.pos)
+                self.hookMomentum[0],self.hookMomentum[1] = self.hookMomentum[0]*self.actualHookSpeed,self.hookMomentum[1] *self.actualHookSpeed
+            else:
+                self.hook.update(tiles,self.pos)
+            self.gravityActualSpeed = 0
 
         elif isinstance(self.hook,Hook) and self.hook.state == "dead":
+            self.actualHookSpeed = 0
             self.hook = None
         
         #movement management
         self.horizontalSpeed = (keys[pygame.K_d] - keys[pygame.K_a]) 
+        if keys[pygame.K_SPACE] and self.canJump:
+            self.jumpMomentum = self.jumpForce
+        else:
+            self.jumpMomentum = self.jumpMomentum-self.gravityAceleration if self.jumpMomentum-self.gravityAceleration > 0 else 0  
 
         if self.horizontalSpeed < 0:
             self.isFacingLeft = True
@@ -118,17 +137,31 @@ class Player:
             else:
                 self.actualspeed = self.actualspeed - self.speedDecrease if self.actualspeed - self.speedDecrease > 0 else 0
 
+        self.gravityActualSpeed = self.gravityActualSpeed + self.gravityAceleration if self.gravityActualSpeed + self.gravityAceleration < self.gravityMaxSpeed else self.maxSpeed
+    
+
         if self.hookVelocity != None and isinstance(self.hook,Hook):
-
-            movement = [self.actualspeed+self.hookVelocity[0]*self.hookMaxVelocity,self.hookVelocity[1]*self.hookMaxVelocity]
+            movement = [self.actualspeed+self.hookVelocity[0]*self.actualHookSpeed,self.gravityActualSpeed+self.hookVelocity[1]*self.actualHookSpeed]
         else:
-            movement = [self.actualspeed,self.maxfallSpeed]
+            movement = [self.actualspeed+self.hookMomentum[0],self.gravityActualSpeed+self.hookMomentum[1]-self.jumpMomentum]
 
-        self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.5
-        self.lastpos[1] += (self.pos[1]-self.lastpos[1])*0.5
+        print(self.hookMomentum)
 
 
-        self.pos = self.move(movement,tiles)[0]
+        self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75
+        self.lastpos[1] += (self.pos[1]-self.lastpos[1])*0.75
+
+
+        self.pos, onFloor = self.move(movement,tiles)
+
+        if onFloor['bottom']:
+            self.gravityActualSpeed = 0
+            self.canJump = True
+        else:
+            self.canJump = False
+
+        if onFloor['top']:
+            self.jumpMomentum = 0
 
         npos = self.pos[0],self.pos[1]
 
@@ -138,12 +171,12 @@ class Player:
         newRect = (self.pos[0]-scroll[0],self.pos[1]-scroll[1]),(self.size)
 
         self.image = pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
-        #self.frameCount +=1
+        self.frameCount +=1
         if self.frameCount == 10:
             self.frameCount = 0
             self.currentSprite +=1 if self.currentSprite < 5 else -5
 
-        self.drawShadow(self.image,scroll)
+        self.drawShadow(self.image,scroll,(69,17,124,255))
 
     
         self.screen.blit(pygame.transform.flip(self.image, self.isFacingLeft, False), newRect)
@@ -154,9 +187,9 @@ class Player:
         #atual pos 
         #pygame.draw.rect(self.screen,(255,255,255), self.rect, SceneManager.Manager.get_sprite_scale())
     
-    def drawShadow(self,image,scroll):
+    def drawShadow(self,image,scroll,color):
         shadow = image.copy()
-        self.set_color(shadow,(69,17,124,255))
+        self.set_color(shadow,color)
 
 
         or1 = (self.lastpos[0]-scroll[0],self.lastpos[1]-scroll[1]-self.scale),(self.size)
@@ -169,7 +202,6 @@ class Player:
         for nrect in offshadowGroup:
             self.screen.blit(pygame.transform.flip(shadow, self.isFacingLeft, False), nrect)
 
-
     def set_color(self,surface, color):
         w, h = surface.get_size()
         r, g, b, a = color
@@ -178,18 +210,3 @@ class Player:
                 a = surface.get_at((x, y))[3]
                 surface.set_at((x, y), pygame.Color(r, g, b, a))
     
-    def set_mask_color(self,surface, primaryColor,secondaryColor):
-        nsurface = surface.copy()
-        w, h = nsurface.get_size()
-        r, g, b, a = primaryColor
-        r2, g2, b2, a = secondaryColor
-        for x in range(w):
-            for y in range(h):
-                a = nsurface.get_at((x, y))[3]
-                if nsurface.get_at((x,y))[0] == 0 and nsurface.get_at((x,y))[1] == 0 and nsurface.get_at((x,y))[2] == 0:
-                    nsurface.set_at((x, y), pygame.Color(r, g, b, a))
-                elif nsurface.get_at((x,y))[0] == 255 and nsurface.get_at((x,y))[1] == 255 and nsurface.get_at((x,y))[2] == 255:
-                    nsurface.set_at((x, y), pygame.Color(r2, g2, b2, a))
-        return nsurface
-    def get_sprite(self):
-        return pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
