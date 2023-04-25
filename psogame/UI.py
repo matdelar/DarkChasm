@@ -30,7 +30,7 @@ class Button:
         text1 = self.font.render(self.text, False, self.tcolor)
         self.screen.blit(text1, self.pos)
     
-    def return_func(self):
+    def get_func(self):
         return self.func
     
     def set_active(self, nstate = None):
@@ -89,4 +89,56 @@ class Timer:
         pygame.draw.rect(self.screen,(50,10,50),((self.pos[0],self.pos[1]),(100,30)))
         text1 = self.font.render(str(round(self.time,3)), False, (240,10,20))
         self.screen.blit(text1, self.pos)
+    
+    def getTime(self):
+        return str(round(self.time,3))
 
+class Slider:
+    def __init__(self,screen,pos,handlePos,size,handleSize,sliderColor,handleColor,maxvalue = 255) -> None:
+        self.screen = screen
+        self.pos = pos
+        self.size = size
+        self.range = maxvalue
+        self.sliderColor = sliderColor
+        self.handleColor = handleColor
+        self.handlePos = handlePos
+        self.handleSize = handleSize
+        self.isMouseOver = False
+        self.isMouseClick = False
+        self.lock = False
+        self.value = 0
+        self.handleRect = pygame.Rect(self.handlePos[0],self.handlePos[1],handleSize[0],self.handleSize[1])
+    
+    def update(self):
+        x,y = pygame.mouse.get_pos()
+        nrect = pygame.Rect(self.handlePos[0],self.handlePos[1],self.handleSize[0],self.handleSize[1])
+        self.isMouseOver = pygame.rect.Rect.collidepoint(nrect,x,y)
+        self.isMouseClick = pygame.mouse.get_pressed()[0]
+        if (self.lock or self.isMouseOver) and self.isMouseClick:
+            newX = x
+            if newX < self.pos[0]:
+                newX = self.pos[0]
+            if newX > self.size[0]+self.pos[0]:
+                newX = self.size[0]+self.pos[0]
+
+            self.handlePos = newX,self.handlePos[1]
+            self.lock = True
+        elif not self.isMouseClick:
+            self.lock = False
+
+        if self.isMouseOver:
+            self.handleColor = (0,255,0)
+        else:
+            self.handleColor = (255,0,0)
+
+        self.handleRect.update(self.handlePos[0],self.handlePos[1],self.handleSize[0],self.handleSize[1])
+
+        self.value = self.handlePos[0]-self.pos[0]
+
+    def draw(self):
+        pygame.draw.rect(self.screen,self.sliderColor,(self.pos,self.size))
+        pygame.draw.rect(self.screen,self.handleColor,self.handleRect)
+        pygame.draw.rect(self.screen,(0,255,0),(self.handlePos,self.handleSize),3)
+
+    def get_Value(self):
+        return self.value
