@@ -10,10 +10,10 @@ class Menu:
     def __init__(self,screen,clock) -> None:
         self.screen = screen
         self.clock = clock
-        self.buttonPlay = Button("play",screen,(100,100),(100,20),"Play",(255,255,255),(200,200,200),(10,10,10))
-        self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200),(10,10,10))
-        self.buttonEdit = Button("edit",screen,(100,160),(100,20),"Edit",(255,255,255),(200,200,200),(10,10,10))
-        self.buttonQuit = Button("quit",screen,(100,190),(100,20),"Quit",(255,255,255),(200,200,200),(10,10,10))
+        self.buttonPlay = Button("play",screen,(100,100),(100,20),"Play",(255,255,255),(200,200,200))
+        self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200))
+        self.buttonEdit = Button("edit",screen,(100,160),(100,20),"Edit",(255,255,255),(200,200,200))
+        self.buttonQuit = Button("quit",screen,(100,190),(100,20),"Quit",(255,255,255),(200,200,200))
         self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit]
         self.activeButton = 0
         self.wRepeatLock = False
@@ -22,28 +22,15 @@ class Menu:
 
     def run(self):
         self.newState = "menu"
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_w] and not self.wRepeatLock and self.activeButton > 0:
-            self.activeButton -=1
-            self.wRepeatLock = True
-        elif keys[pygame.K_s] and not self.sRepeatLock and self.activeButton < len(self.buttons)-1:
-            self.activeButton +=1
-            self.sRepeatLock = True
-        elif keys[pygame.K_f]:
-            self.newState = self.buttons[self.activeButton].get_func()
-        
-        if not keys[pygame.K_w]:
-            self.wRepeatLock = False
-        if not keys[pygame.K_s]:
-            self.sRepeatLock = False
-        
-        for b in self.buttons:
-            if self.buttons.index(b) == self.activeButton:
-                b.active = True
+        for button in self.buttons:
+            if button.mouse_isOver():
+                button.set_active(True)
+                if pygame.mouse.get_pressed()[0]:
+                    self.newState = button.func
             else:
-                b.active = False
-            b.draw()
+                button.set_active(False)
+            
+            button.draw()
     
     def get_State(self):
         return self.newState
@@ -63,27 +50,7 @@ class Play:
         
         self.xLock = False
 
-        self.map1 = [
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-        ]
+        self.map1 = self.load_matrix("assets/levels/level1.txt")
 
         self.scroll = [0,0]
 
@@ -120,6 +87,18 @@ class Play:
 
     def get_State(self):
         return self.newState
+    
+    def load_matrix(self,filename):
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+
+        lines = [line.strip() for line in lines]
+
+        matrix = [[int(pixel) for pixel in line.split()] for line in lines]
+
+        matrix = [[1 if pixel > 0 else 0 for pixel in row] for row in matrix]
+
+        return matrix
 
 class Edit:
     def __init__(self,screen) -> None:
@@ -127,7 +106,7 @@ class Edit:
         self.sliderR = Slider(self.screen,(200,200),(200,200),(255,9),(18,18),(10,10,10),(255,0,0),255)
         self.sliderG = Slider(self.screen,(200,230),(200,230),(255,9),(18,18),(10,10,10),(255,0,0),255)
         self.sliderB = Slider(self.screen,(200,260),(200,260),(255,9),(18,18),(10,10,10),(255,0,0),255)
-        self.buttonBack = Button("menu",self.screen,(10,10),(100,50),"Back",(255,255,255),(20,5,20),(20,5,20))
+        self.buttonBack = Button("menu",self.screen,(10,10),(100,50),"Back",(255,255,255),(20,5,20))
         self.p = Player(self.screen,(500,200))
         self.sliders = [self.sliderR,self.sliderG,self.sliderB]
         self.newState = "edit"
