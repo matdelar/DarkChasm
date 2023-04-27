@@ -9,7 +9,7 @@ class Player:
         self.pos = pos
         self.maxSpeed = 4
         self.actualspeed = 0
-        self.speedIncrease = 1/60 * self.maxSpeed * 8
+        self.speedIncrease = 1/60 * self.maxSpeed * 2
         self.speedDecrease = 1/60 * self.maxSpeed * 4
         self.gravityMaxSpeed = 1/60 * self.scale * (16*13)
         self.gravityAceleration = 1/60 * self.scale * 8
@@ -112,6 +112,7 @@ class Player:
             self.gravityActualSpeed = 0
 
         elif isinstance(self.hook,Hook) and self.hook.state == "dead":
+            self.gravityActualSpeed = 0
             self.actualHookSpeed = 0
             self.hook = None
         
@@ -138,15 +139,13 @@ class Player:
             else:
                 self.actualspeed = self.actualspeed - self.speedDecrease if self.actualspeed - self.speedDecrease > 0 else 0
 
-        self.gravityActualSpeed = self.gravityActualSpeed + self.gravityAceleration if self.gravityActualSpeed + self.gravityAceleration < self.gravityMaxSpeed else self.maxSpeed
+        self.gravityActualSpeed = self.gravityActualSpeed + self.gravityAceleration if self.gravityActualSpeed + self.gravityAceleration < self.gravityMaxSpeed else self.gravityMaxSpeed
     
 
         if self.hookVelocity != None and isinstance(self.hook,Hook):
             movement = [self.actualspeed+self.hookVelocity[0]*self.actualHookSpeed,self.gravityActualSpeed+self.hookVelocity[1]*self.actualHookSpeed]
         else:
             movement = [self.actualspeed+self.hookMomentum[0],self.gravityActualSpeed+self.hookMomentum[1]-self.jumpMomentum]
-
-        print(self.hookMomentum)
 
 
         self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75

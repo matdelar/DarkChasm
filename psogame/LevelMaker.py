@@ -1,7 +1,7 @@
 from PIL import Image
 
 # Open the image and convert it to black and white
-image = Image.open('PNGS\level1.png').convert('L')
+image = Image.open('levels\level0.png').convert('L')
 
 # Get the height and width of the image
 width, height = image.size
@@ -23,6 +23,6 @@ for row in matrix:
         row[i] = 1 - row[i] if 1 - row[i] == 1 else 0
 
 # Save the inverted matrix as a text file
-with open('inverted_matrix.txt', 'w') as file:
+with open('level0.txt', 'w') as file:
     for row in matrix:
         file.write(' '.join(str(pixel) for pixel in row) + '\n')

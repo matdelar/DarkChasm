@@ -44,13 +44,13 @@ class Play:
         self.maps = None
         self.newState = "play"
         self.timer = Timer(self.screen,self.clock,(1*self.pixelSize,10*self.pixelSize),0)
-        self.p = Player(self.screen, (32,64))
+        self.p = Player(self.screen, (200,264))
         self.a = TownMage(self.screen,(128,64))
         self.db = Database.Database()
         
         self.xLock = False
 
-        self.map1 = self.load_matrix("assets/levels/level1.txt")
+        self.map1 = self.load_matrix("levels/level0.txt")
 
         self.scroll = [0,0]
 
