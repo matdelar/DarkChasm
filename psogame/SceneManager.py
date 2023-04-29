@@ -27,4 +27,4 @@ class Manager:
             pygame.quit()
 
     def get_sprite_scale():
-        return 2
+        return 3
