@@ -139,3 +139,49 @@ class Slider:
 
     def get_Value(self):
         return self.value
+    
+class TextInput:
+    def __init__(self,screen,pos,size,color,fontColor,maxTextLength=0) -> None:
+        self.screen = screen
+        self.pos = pos
+        self.size = size
+        self.text = ""
+        self.rect = pygame.Rect(pos[0],pos[1],size[0],size[1])
+        self.color = color
+        self.fontColor = fontColor
+        pygame.font.init()
+        self.font = pygame.font.Font("assets/invasion2000.ttf",self.size[1])
+        self.txt_surface = self.font.render(self.text, True, self.fontColor)
+        self.length = maxTextLength
+        self.active = False
+    
+    def update(self,event):
+        mouseClick = pygame.mouse.get_pressed()[0]
+        mousePos = pygame.mouse.get_pos()
+
+        if mouseClick:
+            self.active = self.rect.collidepoint(mousePos[0],mousePos[1]) 
+        
+        if self.active:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    print(self.text)
+                    self.text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                self.txt_surface = self.font.render(self.text, True, self.fontColor)
+        
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def draw(self):
+        if self.active:
+            pygame.draw.rect(self.screen, self.color, self.rect, width=0)
+        else:
+            pygame.draw.rect(self.screen, self.fontColor, self.rect, width=0)
+        
+        self.screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+
+

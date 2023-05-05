@@ -20,7 +20,7 @@ async def main():
             break
         screen.fill((30,30,40))
         
-        scene.run()
+        scene.run(event)
 
         clock.tick(60)
         #print(int(clk.get_fps()))

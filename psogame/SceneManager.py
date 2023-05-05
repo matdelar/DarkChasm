@@ -10,18 +10,18 @@ class Manager:
         self.trasitionState = None
         self.scenes = [Menu(screen,clock),Play(screen,clock),Edit(screen)]
 
-    def run(self):
+    def run(self,event):
 
         if self.state == None:
             print("Error: sceneState: null")
         elif self.state == "menu":
-            self.scenes[0].run()
+            self.scenes[0].run(event)
             self.state = self.scenes[0].get_State()
         elif self.state == "play":
-            self.scenes[1].run()
+            self.scenes[1].run(event)
             self.state = self.scenes[1].get_State()
         elif self.state == "edit":
-            self.scenes[2].run()
+            self.scenes[2].run(event)
             self.state = self.scenes[2].get_State()
         elif self.state == "quit":
             pygame.quit()

@@ -14,13 +14,14 @@ class Menu:
         self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200))
         self.buttonEdit = Button("edit",screen,(100,160),(100,20),"Edit",(255,255,255),(200,200,200))
         self.buttonQuit = Button("quit",screen,(100,190),(100,20),"Quit",(255,255,255),(200,200,200))
+        self.name = TextInput(screen,(100,220),(100,20),(200,10,10),(10,10,200),3)
         self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit]
         self.activeButton = 0
         self.wRepeatLock = False
         self.sRepeatLock = False
         self.newState = "menu"
 
-    def run(self):
+    def run(self,event):
         self.newState = "menu"
         for button in self.buttons:
             if button.mouse_isOver():
@@ -31,6 +32,8 @@ class Menu:
                 button.set_active(False)
             
             button.draw()
+        self.name.update(event)
+        self.name.draw()
     
     def get_State(self):
         return self.newState
@@ -45,12 +48,11 @@ class Play:
         self.newState = "play"
         self.timer = Timer(self.screen,self.clock,(1*self.pixelSize,10*self.pixelSize),0)
         self.p = Player(self.screen, (200,264))
-        self.a = TownMage(self.screen,(128,64))
         self.db = Database.Database()
         
         self.xLock = False
 
-        self.map1 = self.load_matrix("levels/level1.txt")
+        self.map1 = self.load_matrix("levels/level0.txt")
 
         self.scroll = [0,0]
 
@@ -68,7 +70,7 @@ class Play:
             tile.set_type(nmap)
 
 
-    def run(self):
+    def run(self,event):
         self.scroll[0] += (self.p.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.p.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         for tile in self.tiles:
@@ -111,7 +113,7 @@ class Edit:
         self.sliders = [self.sliderR,self.sliderG,self.sliderB]
         self.newState = "edit"
     
-    def run(self):
+    def run(self,event):
         v = [0,0,0]
         for s in self.sliders:
             s.update()

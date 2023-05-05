@@ -1,22 +1,23 @@
 import pygame
 import SceneManager
-from Hook import *
+from Entities import Umbrella
 
 class Player:
     def __init__(self,screen,pos) -> None:
         self.scale = SceneManager.Manager.get_sprite_scale()
         self.screen = screen
         self.pos = pos
-        self.maxSpeed = 4
+        self.maxSpeed = 5
         self.actualspeed = 0
-        self.speedIncrease = 1/60 * self.maxSpeed * 2
-        self.speedDecrease = 1/60 * self.maxSpeed * 4
+        self.speedIncrease = 1/60 * self.maxSpeed * 5
+        self.speedDecrease = 1/60 * self.maxSpeed * 3
         self.gravityMaxSpeed = 1/60 * self.scale * (16*13)
         self.gravityAceleration = 1/60 * self.scale * 8
         self.gravityActualSpeed = 0
-        self.jumpForce = self.gravityMaxSpeed * 4/3
-        self.canJump = False
+        self.jumpForce = self.gravityMaxSpeed * 5/4
         self.jumpMomentum = 0
+        self.coyoteTime = 6
+        self.coyoteCounter = 0
         self.collisionTypes = False
         
         self.sprites = []
@@ -28,7 +29,7 @@ class Player:
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/mask.png"))
 
-        self.size = 16*self.scale, 16*self.scale
+        self.size = 15*self.scale, 15*self.scale
         self.horizontalSpeed = 0
         self.isFacingLeft = False
 
@@ -38,16 +39,9 @@ class Player:
 
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos[0]+24, self.pos[1]
-    
-        self.hook = None
-        self.hookVelocity = [0,0]
-        self.actualHookSpeed = 0
-        self.hookSpeedIncrease = 1/60 * self.maxSpeed * 8
-        self.hookMaxVelocity = 1/60 * self.maxSpeed * (16*12)
-        self.hookMomentum = [0,0]
 
         self.lastpos = [0,0]
-        self.hookoffset = 7*self.scale, 14*self.scale
+        self.umbrella = Umbrella(self.screen)
 
     def collision_test(self,tiles):
         hit_list = []
@@ -79,46 +73,15 @@ class Player:
         return self.rect, collision_types
 
     def update(self,tiles,scroll):
+        self.coyoteCounter -= 1
         keys = pygame.key.get_pressed()
-        mouseClick = pygame.mouse.get_pressed()[0]
 
-        #hook controller
-        if mouseClick and not isinstance(self.hook,Hook):
-
-            playerPosScroll = self.pos[0]-scroll[0]+self.size[0]//2,self.pos[1]-scroll[1]+self.size[1]//2
-            centerPos = self.pos[0]+self.size[0]//2,self.pos[1]+self.size[1]//2
-            mousepos = pygame.mouse.get_pos()
-            hookAngle = math.atan2(mousepos[1]-playerPosScroll[1],mousepos[0]-playerPosScroll[0])
-            self.hook = Hook(self.screen,centerPos,hookAngle)
-            self.hook.update(tiles,self.pos)
-            self.hook.draw(scroll, self.pos)
-
-        elif mouseClick and isinstance(self.hook,Hook) and self.hook.state != "dead":
-            self.hookVelocity = self.hook.update(tiles,self.pos)
-            self.hook.draw(scroll, self.pos)
-        
-            self.actualHookSpeed = self.actualHookSpeed + self.hookSpeedIncrease if self.actualHookSpeed + self.hookSpeedIncrease < self.hookMaxVelocity else self.hookMaxVelocity 
-        elif not mouseClick and isinstance(self.hook,Hook) and self.hook.state !="dead":
-            self.hook.set_state("retracted")
-            self.hook.update(tiles,self.pos)
-            self.hook.draw(scroll, self.pos)
-        
-        elif isinstance(self.hook,Hook) and self.hook.state == "attached":
-            if self.hookMomentum[0] == self.hookMomentum[1] == 0:
-                self.hookMomentum = self.hook.update(tiles,self.pos)
-                self.hookMomentum[0],self.hookMomentum[1] = self.hookMomentum[0]*self.actualHookSpeed,self.hookMomentum[1] *self.actualHookSpeed
-            else:
-                self.hook.update(tiles,self.pos)
-            self.gravityActualSpeed = 0
-
-        elif isinstance(self.hook,Hook) and self.hook.state == "dead":
-            self.gravityActualSpeed = 0
-            self.actualHookSpeed = 0
-            self.hook = None
+        #umbrella controller
+        self.umbrella.run(self.pos,scroll,keys[pygame.K_SPACE],self.isFacingLeft)
         
         #movement management
         self.horizontalSpeed = (keys[pygame.K_d] - keys[pygame.K_a]) 
-        if keys[pygame.K_SPACE] and self.canJump:
+        if keys[pygame.K_SPACE] and self.coyoteCounter > 0:
             self.jumpMomentum = self.jumpForce
         else:
             self.jumpMomentum = self.jumpMomentum-self.gravityAceleration if self.jumpMomentum-self.gravityAceleration > 0 else 0  
@@ -142,10 +105,11 @@ class Player:
         self.gravityActualSpeed = self.gravityActualSpeed + self.gravityAceleration if self.gravityActualSpeed + self.gravityAceleration < self.gravityMaxSpeed else self.gravityMaxSpeed
     
 
-        if self.hookVelocity != None and isinstance(self.hook,Hook):
-            movement = [self.actualspeed+self.hookVelocity[0]*self.actualHookSpeed,self.gravityActualSpeed+self.hookVelocity[1]*self.actualHookSpeed]
-        else:
-            movement = [self.actualspeed+self.hookMomentum[0],self.gravityActualSpeed+self.hookMomentum[1]-self.jumpMomentum]
+        
+        movement = [self.actualspeed,self.gravityActualSpeed-self.jumpMomentum]
+        if movement[1] > 0 and keys[pygame.K_SPACE]:
+            movement[1] = movement[1]/4
+
 
 
         self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75
@@ -156,9 +120,7 @@ class Player:
 
         if onFloor['bottom']:
             self.gravityActualSpeed = 0
-            self.canJump = True
-        else:
-            self.canJump = False
+            self.coyoteCounter = self.coyoteTime
 
         if onFloor['top']:
             self.jumpMomentum = 0
@@ -183,7 +145,7 @@ class Player:
 
         #hitbox debug
         #render 
-        #pygame.draw.rect(self.screen,(255,255,255), nrect, SceneManager.Manager.get_sprite_scale())
+        #pygame.draw.rect(self.screen,(255,255,255), newRect, SceneManager.Manager.get_sprite_scale())
         #atual pos 
         #pygame.draw.rect(self.screen,(255,255,255), self.rect, SceneManager.Manager.get_sprite_scale())
     
