@@ -50,7 +50,7 @@ class Play:
         
         self.xLock = False
 
-        self.map1 = self.load_matrix("levels/level0.txt")
+        self.map1 = self.load_matrix("levels/level1.txt")
 
         self.scroll = [0,0]
 
