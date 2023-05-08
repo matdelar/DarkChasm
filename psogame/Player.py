@@ -21,19 +21,19 @@ class Player:
         self.collisionTypes = False
         
         self.sprites = []
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player1.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player2.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player3.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player4.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player5.png"))
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
+        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player1.png"))
+        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player2.png"))
+        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player3.png"))
+        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player4.png"))
+        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player5.png"))
+        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/mask.png"))
 
-        self.size = 15*self.scale, 15*self.scale
+        self.size = 16*self.scale, 16*self.scale
         self.horizontalSpeed = 0
         self.isFacingLeft = False
 
-        self.currentSprite = 6
+        self.currentSprite = 0
         self.image = self.sprites[self.currentSprite]
         self.frameCount = 0
 
@@ -144,7 +144,7 @@ class Player:
         self.screen.blit(pygame.transform.flip(self.image, self.isFacingLeft, False), newRect)
 
         #hitbox debug
-        #render 
+        ##render 
         #pygame.draw.rect(self.screen,(255,255,255), newRect, SceneManager.Manager.get_sprite_scale())
         #atual pos 
         #pygame.draw.rect(self.screen,(255,255,255), self.rect, SceneManager.Manager.get_sprite_scale())
@@ -155,7 +155,7 @@ class Player:
 
 
         or1 = (self.lastpos[0]-scroll[0],self.lastpos[1]-scroll[1]-self.scale),(self.size)
-        or2 = (self.lastpos[0]-scroll[0],self.lastpos[1]-scroll[1]+self.scale),(self.size)
+        or2 = (self.lastpos[0]-scroll[0],self.lastpos[1]-scroll[1]-self.scale),(self.size)
         or3 = (self.lastpos[0]-scroll[0]-self.scale,self.lastpos[1]-scroll[1]),(self.size)
         or4 = (self.lastpos[0]-scroll[0]+self.scale,self.lastpos[1]-scroll[1]),(self.size)
 

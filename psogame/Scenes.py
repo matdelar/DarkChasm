@@ -14,11 +14,9 @@ class Menu:
         self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200))
         self.buttonEdit = Button("edit",screen,(100,160),(100,20),"Edit",(255,255,255),(200,200,200))
         self.buttonQuit = Button("quit",screen,(100,190),(100,20),"Quit",(255,255,255),(200,200,200))
-        self.name = TextInput(screen,(100,220),(100,20),(200,10,10),(10,10,200),3)
+        self.name = TextInput(screen,(100,220),(100,20),(100,100,100),(80,80,80),(255,255,255),3)
         self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit]
         self.activeButton = 0
-        self.wRepeatLock = False
-        self.sRepeatLock = False
         self.newState = "menu"
 
     def run(self,event):
@@ -47,10 +45,12 @@ class Play:
         self.maps = None
         self.newState = "play"
         self.timer = Timer(self.screen,self.clock,(1*self.pixelSize,10*self.pixelSize),0)
-        self.p = Player(self.screen, (200,264))
-        self.db = Database.Database()
+        self.player = Player(self.screen, (200,264))
+        self.database = Database.Database()
+        self.pauseMenu = PauseMenu(self.screen)
         
         self.xLock = False
+        self.escLock = False
 
         self.map1 = self.load_matrix("levels/level0.txt")
 
@@ -71,18 +71,30 @@ class Play:
 
 
     def run(self,event):
-        self.scroll[0] += (self.p.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
-        self.scroll[1] += (self.p.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
+        self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
+        self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         for tile in self.tiles:
             tile.draw(self.scroll)
         
-        self.p.update(self.tiles,self.scroll)
-        self.p.draw(self.scroll)
+        self.player.update(self.tiles,self.scroll)
+        self.player.draw(self.scroll)
 
-        if pygame.key.get_pressed()[pygame.K_x] and not self.xLock:
-            self.xLock = True
-            self.db.insertRank("a",self.timer.getTime())
 
+        if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
+            self.escLock = True
+            self.pauseMenu.setActive()
+        elif not pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            self.escLock = False
+
+        self.pauseMenu.run(event,self.timer.getTime())
+
+        if self.pauseMenu.getSendClick() and self.pauseMenu.active and not self.mLock:
+            self.mLock = True
+            self.database.insertRank(self.pauseMenu.txtInput.text,self.timer.getTime())
+            print(self.pauseMenu.txtInput.text,self.timer.getTime())
+        
+        elif not self.pauseMenu.getSendClick():
+            self.mLock = False
 
         self.timer.update()
         self.timer.draw()

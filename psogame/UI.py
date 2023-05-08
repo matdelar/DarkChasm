@@ -7,20 +7,25 @@ class Button:
         self.pos = pos
         self.size = size
         self.text = text
-        self.tcolor = textColor
+        self.textColor = textColor
         self.color = color
         self.active = False
         self.func = func
         self.rect = pygame.Rect(pos,size)
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",self.size[1])
+        self.txt_surface = self.font.render(self.text, True, self.textColor)
+        
+        
+        width = max(self.rect.w, self.txt_surface.get_width()+10)
+        self.rect.w = width
     
     def selected_draw(self):
         pygame.draw.rect(self.screen,self.color,self.rect)
 
     def draw(self):
         self.selected_draw() if self.active else True
-        text1 = self.font.render(self.text, False, self.tcolor)
+        text1 = self.font.render(self.text, False, self.textColor)
         self.screen.blit(text1, self.pos)
     
     def get_func(self):
@@ -141,13 +146,14 @@ class Slider:
         return self.value
     
 class TextInput:
-    def __init__(self,screen,pos,size,color,fontColor,maxTextLength=0) -> None:
+    def __init__(self,screen,pos,size,color,colorActive,fontColor,maxTextLength=0) -> None:
         self.screen = screen
         self.pos = pos
         self.size = size
         self.text = ""
         self.rect = pygame.Rect(pos[0],pos[1],size[0],size[1])
         self.color = color
+        self.colorActive = colorActive
         self.fontColor = fontColor
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",self.size[1])
@@ -173,15 +179,50 @@ class TextInput:
                     self.text += event.unicode
                 self.txt_surface = self.font.render(self.text, True, self.fontColor)
         
-        width = max(200, self.txt_surface.get_width()+10)
+        width = max(self.size[0], self.txt_surface.get_width()+10)
         self.rect.w = width
 
     def draw(self):
         if self.active:
-            pygame.draw.rect(self.screen, self.color, self.rect, width=0)
+            pygame.draw.rect(self.screen, self.colorActive, self.rect, width=0)
         else:
-            pygame.draw.rect(self.screen, self.fontColor, self.rect, width=0)
+            pygame.draw.rect(self.screen, self.color, self.rect, width=0)
         
-        self.screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        self.screen.blit(self.txt_surface,self.rect)
 
+class PauseMenu:
+    def __init__(self,screen) -> None:
+        self.screen = screen
+        self.pos = (300,200)
+        self.size = (200,200)
+        self.color = (30,20,30)
+        self.active = False
+        pygame.font.init()
+        self.font = pygame.font.Font("assets/invasion2000.ttf",30)
+        self.txt_surface = self.font.render("0", True, (255,255,255))
+        self.txtInput = TextInput(self.screen,(300,200),(100,30),(50,30,50),(70,20,70),(255,255,255))
+        self.button = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(30,200,30))
+        self.sendClick = False
+    
+    def run(self,event,time):
+        if self.active:
+            pygame.draw.rect(self.screen,self.color,(self.pos[0],self.pos[1],self.size[0],self.size[1]))
+            self.txtInput.update(event)
+            self.txtInput.draw()
+            self.button.draw()
 
+            self.txt_surface = self.font.render(time, True, (255,255,255))
+            self.screen.blit(self.txt_surface,(400,200,100,30))
+            if self.button.mouse_isOver():
+                self.button.set_active(True)
+                self.getSendClick()
+            else:
+                self.button.set_active(False)
+    def setActive(self):
+        self.active = not self.active
+    
+    def getTextActive(self):
+        return self.txtInput.active
+    
+    def getSendClick(self):
+       return pygame.mouse.get_pressed()[0] and self.button.mouse_isOver()
