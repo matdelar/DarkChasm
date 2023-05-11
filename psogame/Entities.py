@@ -102,3 +102,22 @@ class Umbrella:
         return nsurface
     def get_sprite(self):
         return pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
+
+class Coin:
+    def __init__(self, screen, pos,value=50):
+        self.screen = screen
+        self.pos = pos
+        self.size = [8,8]
+        self.scale = SceneManager.Manager.get_sprite_scale()
+        self.value = value
+        self.rect = pos[0],pos[1],self.size[0],self.size[1]
+
+    def get_value(self):
+        return self.value
+
+    def get_rect(self):
+        return self.rect
+
+    def draw(self,scroll):
+        newRect = pygame.Rect(self.pos[0]-scroll[0],self.pos[1]-scroll[1],self.size[0]*self.scale,self.size[1]*self.scale)
+        pygame.draw.rect(self.screen,(255,0,0),newRect)

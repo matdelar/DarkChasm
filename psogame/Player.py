@@ -9,8 +9,8 @@ class Player:
         self.pos = pos
         self.maxSpeed = 5
         self.actualspeed = 0
-        self.speedIncrease = 1/60 * self.maxSpeed * 5
-        self.speedDecrease = 1/60 * self.maxSpeed * 3
+        self.speedIncrease = 1/60 * self.maxSpeed * 10
+        self.speedDecrease = 1/60 * self.maxSpeed * 6
         self.gravityMaxSpeed = 1/60 * self.scale * (16*13)
         self.gravityAceleration = 1/60 * self.scale * 8
         self.gravityActualSpeed = 0
@@ -188,3 +188,6 @@ class Player:
         return nsurface
     def get_sprite(self):
         return pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
+
+    def get_rect(self):
+        return self.rect

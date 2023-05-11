@@ -48,8 +48,16 @@ class Play:
         self.player = Player(self.screen, (200,264))
         self.database = Database.Database()
         self.pauseMenu = PauseMenu(self.screen)
+        self.points = 0
         
-        self.xLock = False
+        self.coins = [
+            Coin(self.screen,(240+20,550)),
+            Coin(self.screen,(280+20,550)),
+            Coin(self.screen,(320+20,550)),
+            Coin(self.screen,(360+20,550)),
+            Coin(self.screen,(400+20,550))
+        ]
+
         self.escLock = False
 
         self.map1 = self.load_matrix("levels/level0.txt")
@@ -98,6 +106,17 @@ class Play:
 
         self.timer.update()
         self.timer.draw()
+
+
+        for c in self.coins:
+            if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
+                self.points += c.get_value()
+                self.coins.pop(self.coins.index(c))
+                print(self.points)
+            else:
+                c.draw(self.scroll)
+
+
 
     def get_State(self):
         return self.newState
