@@ -24,7 +24,7 @@ class Umbrella:
         self.idleFrame = 0
 
     def run(self,playerPos,scroll,isOpen,isFacingLeft):
-        self.idleFrame += 3
+        self.idleFrame = (self.idleFrame+3) % 360
 
         if isOpen:
             self.currentOffset[0] += self.offsetOpen[0]-self.currentOffset[0] * 0.75

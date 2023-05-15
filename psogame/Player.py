@@ -11,10 +11,10 @@ class Player:
         self.actualspeed = 0
         self.speedIncrease = 1/60 * self.maxSpeed * 10
         self.speedDecrease = 1/60 * self.maxSpeed * 6
-        self.gravityMaxSpeed = 1/60 * self.scale * (16*13)
-        self.gravityAceleration = 1/60 * self.scale * 8
+        self.gravityMaxSpeed = 1/60 * self.scale * 100
+        self.gravityAceleration = 1/60 * self.scale * 10
         self.gravityActualSpeed = 0
-        self.jumpForce = self.gravityMaxSpeed * 5/4
+        self.jumpForce = 15
         self.jumpMomentum = 0
         self.coyoteTime = 6
         self.coyoteCounter = 0
@@ -77,12 +77,13 @@ class Player:
         keys = pygame.key.get_pressed()
 
         #umbrella controller
-        self.umbrella.run(self.pos,scroll,keys[pygame.K_SPACE],self.isFacingLeft)
         
         #movement management
         self.horizontalSpeed = (keys[pygame.K_d] - keys[pygame.K_a]) 
         if keys[pygame.K_SPACE] and self.coyoteCounter > 0:
             self.jumpMomentum = self.jumpForce
+        elif not keys[pygame.K_SPACE] and self.jumpMomentum > 0:
+            self.jumpMomentum = self.jumpMomentum/2
         else:
             self.jumpMomentum = self.jumpMomentum-self.gravityAceleration if self.jumpMomentum-self.gravityAceleration > 0 else 0  
 
@@ -110,6 +111,7 @@ class Player:
         if movement[1] > 0 and keys[pygame.K_SPACE]:
             movement[1] = movement[1]/4
 
+        self.umbrella.run(self.pos,scroll,(keys[pygame.K_SPACE] and movement[1] > 0 ),self.isFacingLeft)
 
 
         self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75

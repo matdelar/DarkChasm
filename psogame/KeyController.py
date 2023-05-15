@@ -1,10 +1,12 @@
 import pygame
 
-class Controller:
+class Input:
     def __init__(self) -> None:
-        self.leftKey = pygame.K_a
-        self.rightKey = pygame.K_d
-        self.jumpKey = pygame.K_SPACE
+        self.left = pygame.K_a
+        self.right = pygame.K_d
+        self.jump = pygame.K_SPACE
+        self.hover = pygame.K_SPACE
 
     def get_axisX(self):
-        return self.rightKey-self.leftKey
+        return self.right-self.left
+    

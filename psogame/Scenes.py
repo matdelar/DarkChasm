@@ -10,6 +10,8 @@ class Menu:
     def __init__(self,screen,clock) -> None:
         self.screen = screen
         self.clock = clock
+        self.title = Title(self.screen,(200,50))
+        self.background = Background(self.screen)
         self.buttonPlay = Button("play",screen,(100,100),(100,20),"Play",(255,255,255),(200,200,200))
         self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200))
         self.buttonEdit = Button("edit",screen,(100,160),(100,20),"Edit",(255,255,255),(200,200,200))
@@ -20,6 +22,8 @@ class Menu:
         self.newState = "menu"
 
     def run(self,event):
+        self.background.draw()
+
         self.newState = "menu"
         for button in self.buttons:
             if button.mouse_isOver():
@@ -32,6 +36,7 @@ class Menu:
             button.draw()
         self.name.update(event)
         self.name.draw()
+        self.title.draw()
     
     def get_State(self):
         return self.newState
@@ -48,6 +53,7 @@ class Play:
         self.player = Player(self.screen, (200,264))
         self.database = Database.Database()
         self.pauseMenu = PauseMenu(self.screen)
+        self.scoreBoard = Text(self.screen,"0",(255,0,0),(1*self.pixelSize,18*self.pixelSize),16)
         self.points = 0
         
         self.coins = [
@@ -86,6 +92,7 @@ class Play:
         
         self.player.update(self.tiles,self.scroll)
         self.player.draw(self.scroll)
+        self.scoreBoard.draw(self.points)
 
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
@@ -99,7 +106,6 @@ class Play:
         if self.pauseMenu.getSendClick() and self.pauseMenu.active and not self.mLock:
             self.mLock = True
             self.database.insertRank(self.pauseMenu.txtInput.text,self.timer.getTime())
-            print(self.pauseMenu.txtInput.text,self.timer.getTime())
         
         elif not self.pauseMenu.getSendClick():
             self.mLock = False
@@ -112,7 +118,6 @@ class Play:
             if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
                 self.points += c.get_value()
                 self.coins.pop(self.coins.index(c))
-                print(self.points)
             else:
                 c.draw(self.scroll)
 
