@@ -1,5 +1,6 @@
 import pygame
 import SceneManager
+from math import *
 
 class Button:
     def __init__(self,func,screen,pos,size,text,textColor,color) -> None:
@@ -190,6 +191,27 @@ class TextInput:
         
         self.screen.blit(self.txt_surface,self.rect)
 
+class Text:
+    def __init__(self,screen,text,color,pos,fontSize) -> None:
+        self.screen = screen
+        self.text = text 
+        self.color = color 
+        self.pos = pos 
+        self.fontSize = fontSize 
+        
+        pygame.font.init()
+        self.font = pygame.font.Font("assets/invasion2000.ttf",self.fontSize)
+        self.txt_surface = self.font.render(self.text, True, self.color)
+        self.rect = pygame.Rect(self.pos[0],self.pos[1],self.txt_surface.get_width(),self.fontSize)
+    
+    def draw(self,newText=None):
+        if newText != None:
+            newTxt_surface = self.font.render(str(newText), True, self.color)    
+            newRect = pygame.Rect(self.pos[0],self.pos[1],newTxt_surface.get_width(),self.fontSize) 
+            self.screen.blit(newTxt_surface,newRect)
+        else:
+            self.screen.blit(self.txt_surface,self.rect)
+
 class PauseMenu:
     def __init__(self,screen) -> None:
         self.screen = screen
@@ -226,3 +248,53 @@ class PauseMenu:
     
     def getSendClick(self):
        return pygame.mouse.get_pressed()[0] and self.button.mouse_isOver()
+
+class Title:
+    def __init__(self,screen,pos) -> None:
+        self.screen = screen
+        self.sprite = pygame.image.load("assets/misc/Menu/title.png")
+        self.size = self.sprite.get_size()
+        print(self.size)
+        self.rect = self.sprite.get_rect()
+        self.pos = pos
+        self.rect.x = self.pos[0]-self.rect.w/2
+        self.rect.y = self.pos[1]
+        self.scale = 3
+        self.time = 0
+    
+    def draw(self):
+        self.time += 1/30
+        self.image = pygame.transform.rotate(self.sprite,degrees(sin(self.time))/20)
+        self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
+        self.rect.y = self.pos[1]+cos(self.time)*10
+
+
+        self.screen.blit(self.image,self.rect)
+
+class Background:
+    def __init__(self,screen) -> None:
+        self.screen = screen
+        self.pos = [0,0]
+        self.sprite = pygame.image.load("assets/misc/Menu/spike.png")
+        self.size = self.sprite.get_size()
+        self.rect = self.sprite.get_rect()
+        self.speed = [1/3,0]
+        self.scale = 4
+        self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
+        
+
+    def draw(self):
+        self.pos[0] += self.speed[0]
+        self.rect.x = self.pos[0]
+
+        infRect = pygame.Rect(self.pos[0]-self.size[0]*self.scale,self.pos[1],self.size[0]*self.scale,self.size[1]*self.scale)
+        infRect2 = pygame.Rect(self.pos[0]+self.size[0]*self.scale,self.pos[1],self.size[0]*self.scale,self.size[1]*self.scale)
+
+        if self.pos[0] > self.size[0]*self.scale:
+            self.pos[0] = 0
+        elif self.pos[0] < 0:
+            self.pos[0] = self.size[0]*self.scale
+
+        #self.screen.blit(self.sprite,self.rect)
+        #self.screen.blit(self.sprite,infRect)
+        #self.screen.blit(self.sprite,infRect2)
