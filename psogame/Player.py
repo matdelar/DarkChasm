@@ -1,32 +1,28 @@
 import pygame
 import SceneManager
 from Entities import Umbrella
+from KeyController import Input
 
 class Player:
     def __init__(self,screen,pos) -> None:
         self.scale = SceneManager.Manager.get_sprite_scale()
+        self.input = Input()
         self.screen = screen
         self.pos = pos
         self.maxSpeed = 5
         self.actualspeed = 0
-        self.speedIncrease = 1/60 * self.maxSpeed * 5
-        self.speedDecrease = 1/60 * self.maxSpeed * 3
-        self.gravityMaxSpeed = 1/60 * self.scale * (16*13)
-        self.gravityAceleration = 1/60 * self.scale * 8
+        self.speedIncrease = 1/60 * self.maxSpeed * 10
+        self.speedDecrease = 1/60 * self.maxSpeed * 6
+        self.gravityMaxSpeed = 1/60 * self.scale * 100
+        self.gravityAceleration = 1/60 * self.scale * 10
         self.gravityActualSpeed = 0
-        self.jumpForce = self.gravityMaxSpeed * 5/4
+        self.jumpForce = 15
         self.jumpMomentum = 0
         self.coyoteTime = 6
         self.coyoteCounter = 0
         self.collisionTypes = False
         
         self.sprites = []
-        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player1.png"))
-        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player2.png"))
-        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player3.png"))
-        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player4.png"))
-        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player5.png"))
-        #self.sprites.append(pygame.image.load("assets/entities/Player/Idle/Player6.png"))
         self.sprites.append(pygame.image.load("assets/entities/Player/Idle/mask.png"))
 
         self.size = 16*self.scale, 16*self.scale
@@ -74,15 +70,13 @@ class Player:
 
     def update(self,tiles,scroll):
         self.coyoteCounter -= 1
-        keys = pygame.key.get_pressed()
-
-        #umbrella controller
-        self.umbrella.run(self.pos,scroll,keys[pygame.K_SPACE],self.isFacingLeft)
         
         #movement management
-        self.horizontalSpeed = (keys[pygame.K_d] - keys[pygame.K_a]) 
-        if keys[pygame.K_SPACE] and self.coyoteCounter > 0:
+        self.horizontalSpeed = (self.input.get_input('right') - self.input.get_input('left')) 
+        if self.input.get_input('jump') and self.coyoteCounter > 0:
             self.jumpMomentum = self.jumpForce
+        elif not self.input.get_input('jump') and self.jumpMomentum > 0:
+            self.jumpMomentum = self.jumpMomentum/2
         else:
             self.jumpMomentum = self.jumpMomentum-self.gravityAceleration if self.jumpMomentum-self.gravityAceleration > 0 else 0  
 
@@ -107,9 +101,12 @@ class Player:
 
         
         movement = [self.actualspeed,self.gravityActualSpeed-self.jumpMomentum]
-        if movement[1] > 0 and keys[pygame.K_SPACE]:
+        if movement[1] > 0 and self.input.get_input('action'):
             movement[1] = movement[1]/4
 
+
+        #umbrella controller
+        self.umbrella.run(self.pos,scroll,(self.input.get_input('action') and movement[1] > 0 ),self.isFacingLeft)
 
 
         self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75
@@ -124,6 +121,9 @@ class Player:
 
         if onFloor['top']:
             self.jumpMomentum = 0
+        
+        if onFloor['left'] or onFloor['right']:
+            self.actualspeed = 0
 
         npos = self.pos[0],self.pos[1]
 
@@ -188,3 +188,6 @@ class Player:
         return nsurface
     def get_sprite(self):
         return pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
+
+    def get_rect(self):
+        return self.rect
