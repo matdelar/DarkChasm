@@ -38,45 +38,15 @@ class Stone:
     def set_type(self,grid):
         sides = [False,False,False,False,False,False,False,False]
 
-        if grid[self.tilepos[1]-1][self.tilepos[0]-1] == 1: # x-1,y-1 top left
-            sides[0] = True
-        else:
-            sides[0] = False
-
-        if grid[self.tilepos[1]-1][self.tilepos[0]] == 1: # x,y-1 top
-            sides[1] = True
-        else:
-            sides[1] = False
-
-        if grid[self.tilepos[1]-1][self.tilepos[0]+1] == 1: # x+1,y-1 top Right
-            sides[2] = True
-        else:
-            sides[2] = False
-
-        if grid[self.tilepos[1]][self.tilepos[0]+1] == 1: # x+1,y Right
-            sides[3] = True
-        else:
-            sides[3] = False
-
-        if grid[self.tilepos[1]+1][self.tilepos[0]+1] == 1: # x+1,y+1 bottom Right
-            sides[4] = True
-        else:
-            sides[4] = False
-
-        if grid[self.tilepos[1]+1][self.tilepos[0]] == 1: # x,y+1 bottom
-            sides[5] = True
-        else:
-            sides[5] = False
-
-        if grid[self.tilepos[1]+1][self.tilepos[0]-1] == 1: # x-1,y+1 bottom left
-            sides[6] = True
-        else:
-            sides[6] = False
-
-        if grid[self.tilepos[1]][self.tilepos[0]-1] == 1: # x-1,y left
-            sides[7] = True
-        else:
-            sides[7] = False
+        sides[0] = grid[self.tilepos[1]-1][self.tilepos[0]-1]# x-1,y-1 top left
+        sides[1] = grid[self.tilepos[1]-1][self.tilepos[0]]   # x,y-1 top
+        sides[2] = grid[self.tilepos[1]-1][self.tilepos[0]+1]# x+1,y-1 top Right
+        sides[3] = grid[self.tilepos[1]][self.tilepos[0]+1]  # x+1,y Right
+        sides[4] = grid[self.tilepos[1]+1][self.tilepos[0]+1]# x+1,y+1 bottom Right
+        sides[5] = grid[self.tilepos[1]+1][self.tilepos[0]]  # x,y+1 bottom
+        sides[6] = grid[self.tilepos[1]+1][self.tilepos[0]-1]# x-1,y+1 bottom left
+        sides[7] = grid[self.tilepos[1]][self.tilepos[0]-1]  # x-1,y left
+   
         
         
         if not sides[1] and sides[3] and sides[4] and sides[5] and not sides[7]:

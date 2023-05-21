@@ -22,3 +22,14 @@ class Database:
     def closeDB(self):
         self.c.close()
         self.cnn.close()
+
+#create database darkchasmpsooo;
+#use darkchasmpsoo;# MySQL não retornou nenhum registo.
+#CREATE TABLE rank(
+#id int NOT null	AUTO_INCREMENT,
+#name varchar(45) not null,
+#time varchar(45) not null,
+#    PRIMARY KEY (id)
+#
+#);# MySQL não retornou nenhum registo.
+#

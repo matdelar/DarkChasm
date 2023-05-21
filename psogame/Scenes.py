@@ -10,16 +10,20 @@ class Menu:
     def __init__(self,screen,clock) -> None:
         self.screen = screen
         self.clock = clock
+        self.title = Title(self.screen,(200,50))
+        self.background = Background(self.screen)
         self.buttonPlay = Button("play",screen,(100,100),(100,20),"Play",(255,255,255),(200,200,200))
         self.buttonLoad = Button("load",screen,(100,130),(100,20),"Load",(255,255,255),(200,200,200))
         self.buttonEdit = Button("edit",screen,(100,160),(100,20),"Edit",(255,255,255),(200,200,200))
-        self.buttonQuit = Button("quit",screen,(100,190),(100,20),"Quit",(255,255,255),(200,200,200))
-        self.name = TextInput(screen,(100,220),(100,20),(100,100,100),(80,80,80),(255,255,255),3)
-        self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit]
+        self.buttonLogin = Button("login",screen,(100,190),(100,20),"Login",(255,255,255),(200,200,200))
+        self.buttonQuit = Button("quit",screen,(100,220),(100,20),"Quit",(255,255,255),(200,200,200))
+        self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit,self.buttonLogin]
         self.activeButton = 0
         self.newState = "menu"
 
     def run(self,event):
+        self.background.draw()
+
         self.newState = "menu"
         for button in self.buttons:
             if button.mouse_isOver():
@@ -30,8 +34,7 @@ class Menu:
                 button.set_active(False)
             
             button.draw()
-        self.name.update(event)
-        self.name.draw()
+        self.title.draw()
     
     def get_State(self):
         return self.newState
@@ -44,12 +47,22 @@ class Play:
         self.pixelSize = SceneManager.Manager.get_sprite_scale()
         self.maps = None
         self.newState = "play"
+        self.background = Background(self.screen)
         self.timer = Timer(self.screen,self.clock,(1*self.pixelSize,10*self.pixelSize),0)
         self.player = Player(self.screen, (200,264))
         self.database = Database.Database()
         self.pauseMenu = PauseMenu(self.screen)
+        self.scoreBoard = Text(self.screen,"0",(255,0,0),(1*self.pixelSize,18*self.pixelSize),16)
+        self.points = 0
         
-        self.xLock = False
+        self.coins = [
+            Coin(self.screen,(240+20,550)),
+            Coin(self.screen,(280+20,550)),
+            Coin(self.screen,(320+20,550)),
+            Coin(self.screen,(360+20,550)),
+            Coin(self.screen,(400+20,550))
+        ]
+
         self.escLock = False
 
         self.map1 = self.load_matrix("levels/level0.txt")
@@ -71,6 +84,7 @@ class Play:
 
 
     def run(self,event):
+        self.background.draw()
         self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         for tile in self.tiles:
@@ -78,6 +92,7 @@ class Play:
         
         self.player.update(self.tiles,self.scroll)
         self.player.draw(self.scroll)
+        self.scoreBoard.draw(self.points)
 
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
@@ -91,13 +106,22 @@ class Play:
         if self.pauseMenu.getSendClick() and self.pauseMenu.active and not self.mLock:
             self.mLock = True
             self.database.insertRank(self.pauseMenu.txtInput.text,self.timer.getTime())
-            print(self.pauseMenu.txtInput.text,self.timer.getTime())
         
         elif not self.pauseMenu.getSendClick():
             self.mLock = False
 
         self.timer.update()
         self.timer.draw()
+        self.background.pos = [-self.player.pos[0]*0.4,0]
+
+        for c in self.coins:
+            if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
+                self.points += c.get_value()
+                self.coins.pop(self.coins.index(c))
+            else:
+                c.draw(self.scroll)
+
+
 
     def get_State(self):
         return self.newState
@@ -117,11 +141,11 @@ class Play:
 class Edit:
     def __init__(self,screen) -> None:
         self.screen = screen
-        self.sliderR = Slider(self.screen,(200,200),(200,200),(255,9),(18,18),(10,10,10),(255,0,0),255)
-        self.sliderG = Slider(self.screen,(200,230),(200,230),(255,9),(18,18),(10,10,10),(255,0,0),255)
-        self.sliderB = Slider(self.screen,(200,260),(200,260),(255,9),(18,18),(10,10,10),(255,0,0),255)
+        self.sliderR = Slider(self.screen,(200,100),(200,100),(255,9),(18,18),(10,10,10),(255,0,0),255)
+        self.sliderG = Slider(self.screen,(200,130),(200,130),(255,9),(18,18),(10,10,10),(255,0,0),255)
+        self.sliderB = Slider(self.screen,(200,160),(200,160),(255,9),(18,18),(10,10,10),(255,0,0),255)
         self.buttonBack = Button("menu",self.screen,(10,10),(100,50),"Back",(255,255,255),(20,5,20))
-        self.p = Player(self.screen,(500,200))
+        self.player = Player(self.screen,(500,100))
         self.sliders = [self.sliderR,self.sliderG,self.sliderB]
         self.newState = "edit"
     
@@ -133,7 +157,7 @@ class Edit:
             v[self.sliders.index(s)] = s.get_Value()
         
         #pygame.draw.rect(self.screen,(v[0],v[1],v[2]),(500,200,100,100))
-        self.screen.blit(self.p.set_mask_color(self.p.get_sprite(),(v[0],v[1],v[2],255),(255,v[1],0,255)), (500,200,16,16))
+        self.screen.blit(self.player.set_mask_color(self.player.get_sprite(),(v[0],v[1],v[2],255),(255,v[1],0,255)), (500,100,16,16))
 
         x,y = pygame.mouse.get_pos()
         if pygame.rect.Rect.collidepoint(self.buttonBack.rect,x,y):
@@ -145,5 +169,26 @@ class Edit:
         self.buttonBack.draw()
         
 
+    def get_State(self):
+        return self.newState
+
+class Login:
+    def __init__(self,screen) -> None:
+        self.screen = screen
+        self.loginInfo = None
+        self.nickText = TextInput(self.screen,(300,200),(200,15),(50,30,50),(70,20,70),(255,255,255))
+        self.emailText = TextInput(self.screen,(300,220),(200,15),(50,30,50),(70,20,70),(255,255,255))
+        self.passwordText = TextInput(self.screen,(300,240),(200,15),(50,30,50),(70,20,70),(255,255,255))
+        self.newState = "login"
+    
+    def run(self,event):
+        self.nickText.update(event)
+        self.passwordText.update(event)
+        self.emailText.update(event)
+
+        self.nickText.draw()
+        self.passwordText.draw()
+        self.emailText.draw()
+    
     def get_State(self):
         return self.newState
