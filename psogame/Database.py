@@ -2,14 +2,18 @@ import mysql.connector
 
 class Database:
     def __init__(self) -> None:
-        self.cnn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database = "DarkChasmPSOO"
-        )
-        self.c = self.cnn.cursor()
-
+        self.isOnline = True
+        try:
+            self.cnn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database = "DarkChasmPSOO"
+            )
+            self.c = self.cnn.cursor()
+        except:
+            self.isOnline = False
+            print("database not reached")
     def insertRank(self,name,time):
         add_rank = ("INSERT INTO rank "
               "(id,name, time) "
