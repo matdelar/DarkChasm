@@ -6,13 +6,12 @@ class Manager:
         self.screen = screen
         self.state = "menu"
         self.lastState = self.state
-        self.sceneTrasition = Transition(self.screen,True,1,30)
-        self.trasitionState = None
+        self.database = Database.Database()
         self.scenes = {
-                        "menu"  : Menu(screen,clock),
-                        "play"  : Play(screen,clock),
-                        "edit"  : Edit(screen),
-                        "login" : Login(screen)
+                        "menu"  : Menu(screen,clock,self.database),
+                        "play"  : Play(screen,clock,self.database),
+                        "edit"  : Edit(screen,self.database),
+                        "login" : Login(screen,self.database)
                        
                        }
 
@@ -22,6 +21,3 @@ class Manager:
         else:
             self.scenes[self.state].run(event)
             self.state = self.scenes[self.state].get_State()
-
-    def get_sprite_scale():
-        return 3

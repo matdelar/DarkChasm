@@ -1,5 +1,4 @@
 import pygame
-import SceneManager
 from math import *
 
 class Button:
@@ -16,6 +15,7 @@ class Button:
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",self.size[1])
         self.txt_surface = self.font.render(self.text, True, self.textColor)
+        self.textPos = self.pos[0]+self.size[0]/2-self.txt_surface.get_width()/2,self.pos[1]
         
         
         width = max(self.rect.w, self.txt_surface.get_width()+10)
@@ -27,7 +27,7 @@ class Button:
     def draw(self):
         self.selected_draw() if self.active else True
         text1 = self.font.render(self.text, False, self.textColor)
-        self.screen.blit(text1, self.pos)
+        self.screen.blit(text1, self.textPos)
     
     def get_func(self):
         return self.func
@@ -42,57 +42,30 @@ class Button:
         else:
             self.active = nstate
             
-class Transition:
-    def __init__(self,screen,auto = True,timeins = 2,spacing=24) -> None:
-        self.screen = screen
-        self.scale = SceneManager.Manager.get_sprite_scale()
-        self.auto = auto
-        self.totalFrames = timeins*60
-        self.frameCount = 0
-        self.circleSizeIncrease = spacing/self.totalFrames
-        self.circleSizeActual = self.circleSizeIncrease
-        self.spacing = spacing
-        self.xAmount = int(self.screen.get_width()//spacing)+3
-        self.yAmount = int(self.screen.get_height()//spacing)+3
-    
-    def run(self):
-        self.frameCount += 1
-        if self.frameCount < self.totalFrames:
-            self.circleSizeActual += self.circleSizeIncrease
-            self.draw()
-            return "on"
-        elif self.auto:
-            self.circleSizeActual -= self.circleSizeIncrease if self.circleSizeActual - self.circleSizeIncrease > 0 else 0
-            self.draw()
-            return "off"
-        elif pygame.key.get_pressed()[pygame.K_x]:
-            self.auto = 1
-            self.draw()
-            return "waiting"
-        
-    def draw(self):
-        for x in range(self.xAmount):
-            for y in range(self.yAmount):
-                pygame.draw.circle(self.screen,(0,0,0), [x*self.spacing,y*self.spacing], self.circleSizeActual)
-    
 class Timer:
     def __init__(self,screen,clock,pos,time = 0) -> None:
         self.screen = screen
         self.clock = clock
         self.time = time
         self.pos = pos
+        self.isActive = True
         pygame.font.init()
-        #self.size = size[0],size[1]
         self.font = pygame.font.Font("assets/invasion2000.ttf",18)
     
     def update(self):
-        self.time += self.clock.get_time()/1000
+        self.time += self.clock.get_time()/1000 * self.isActive
 
     def draw(self):
         pygame.draw.rect(self.screen,(50,10,50),((self.pos[0],self.pos[1]),(100,30)))
         text1 = self.font.render(str(round(self.time,3)), False, (240,10,20))
         self.screen.blit(text1, self.pos)
     
+    def toggleTimer(self,newState = None):
+        if newState != None:
+            self.isActive = newState
+        else:
+            self.isActive = not self.isActive
+
     def getTime(self):
         return str(round(self.time,3))
 
@@ -253,9 +226,8 @@ class PauseMenu:
 class Title:
     def __init__(self,screen,pos) -> None:
         self.screen = screen
-        self.sprite = pygame.image.load("assets/misc/Menu/title.png")
+        self.sprite = pygame.image.load("assets/ui/menu/title.png").convert_alpha()
         self.size = self.sprite.get_size()
-        print(self.size)
         self.rect = self.sprite.get_rect()
         self.pos = pos
         self.rect.x = self.pos[0]-self.rect.w/2
@@ -265,7 +237,7 @@ class Title:
     
     def draw(self):
         self.time += 1/30
-        self.image = pygame.transform.rotate(self.sprite,degrees(sin(self.time))/20)
+        self.image = pygame.transform.rotate(self.sprite,degrees(sin(self.time))/20*0)
         self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
         self.rect.y = self.pos[1]+cos(self.time)*10
 
@@ -273,19 +245,19 @@ class Title:
         self.screen.blit(self.image,self.rect)
 
 class Background:
-    def __init__(self,screen) -> None:
+    def __init__(self,screen,staticSpeed) -> None:
         self.screen = screen
         self.pos = [0,0]
-        self.sprite = pygame.image.load("assets/misc/Menu/spike.png")
+        self.sprite = pygame.image.load("assets/ui/menu/spike.png").convert_alpha()
         self.size = self.sprite.get_size()
         self.rect = self.sprite.get_rect()
-        self.speed = [1/3,0]
+        self.speed = staticSpeed
         self.scale = 4
         self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
         
 
-    def draw(self):
-        self.pos[0] += self.speed[0]
+    def draw(self,dinamicSpeed=[0,0]):
+        self.pos[0] += self.speed[0]+dinamicSpeed[0]
         self.rect.x = self.pos[0]
 
         infRect = pygame.Rect(self.pos[0]-self.size[0]*self.scale,self.pos[1],self.size[0]*self.scale,self.size[1]*self.scale)
@@ -295,7 +267,38 @@ class Background:
             self.pos[0] = 0
         elif self.pos[0] < 0:
             self.pos[0] = self.size[0]*self.scale
-        print(self.pos)
+
+
         self.screen.blit(self.sprite,self.rect)
         self.screen.blit(self.sprite,infRect)
         self.screen.blit(self.sprite,infRect2)
+
+class Inventory:
+    def __init__(self,screen,database):
+        self.screen = screen
+        self.database = database
+        self.scale = self.database.get_sprite_scale()
+        self.backgroundSprite = pygame.image.load("assets/ui/inventory/inventory_bar.png").convert_alpha()
+        self.slotSprite = pygame.image.load("assets/ui/inventory/inventory_slot.png").convert_alpha()
+
+        self.pos = self.screen.get_width()/2-self.backgroundSprite.get_width()/2,self.screen.get_height()-self.backgroundSprite.get_height()/2*self.scale
+        self.sizeBG = [48,48]
+        self.sizeSlot = [16,16]
+        self.items = [None,None,None,None]
+        self.active = 0
+        self.rect = pygame.Rect(self.pos[0],self.pos[1],self.sizeBG[0],self.sizeBG[1])
+
+        self.backgroundSprite = pygame.transform.scale(self.backgroundSprite, (self.sizeBG[0]*self.scale, self.sizeBG[1]*self.scale))
+        self.slotSprite = pygame.transform.scale(self.slotSprite, (self.sizeSlot[0]*self.scale, self.sizeSlot[1]*self.scale))
+    
+    def draw(self):
+        self.screen.blit(self.backgroundSprite,self.rect)
+        for i in range(4):
+            slotPos = [self.pos[0]+sin(radians(i*90))*self.scale*21+self.scale*16,
+                       self.pos[1]+cos(radians(i*90))*self.scale*21+self.scale*16]
+            newRect = slotPos[0],slotPos[1],self.sizeSlot[0],self.sizeSlot[1]
+            self.screen.blit(self.slotSprite,newRect)
+
+
+    def update(self):
+        pass

@@ -1,13 +1,14 @@
 import pygame
 import SceneManager
 from Entities import Umbrella
-from KeyController import Input
+from Input import Input 
 
 class Player:
-    def __init__(self,screen,pos) -> None:
-        self.scale = SceneManager.Manager.get_sprite_scale()
-        self.input = Input()
+    def __init__(self,screen,pos,database) -> None:
         self.screen = screen
+        self.database = database
+        self.scale = self.database.get_sprite_scale()
+        self.input = Input()
         self.pos = pos
         self.maxSpeed = 5
         self.actualspeed = 0
@@ -21,9 +22,11 @@ class Player:
         self.coyoteTime = 6
         self.coyoteCounter = 0
         self.collisionTypes = False
+        self.color = self.database.getColor()
+        print(self.color)
         
         self.sprites = []
-        self.sprites.append(pygame.image.load("assets/entities/Player/Idle/mask.png"))
+        self.sprites.append(pygame.image.load("assets/player/mask.png"))
 
         self.size = 16*self.scale, 16*self.scale
         self.horizontalSpeed = 0
@@ -37,7 +40,7 @@ class Player:
         self.rect.topleft = self.pos[0]+24, self.pos[1]
 
         self.lastpos = [0,0]
-        self.umbrella = Umbrella(self.screen)
+        self.umbrella = Umbrella(self.screen,self.database)
 
     def collision_test(self,tiles):
         hit_list = []
@@ -69,6 +72,7 @@ class Player:
         return self.rect, collision_types
 
     def update(self,tiles,scroll):
+        self.color = self.database.getColor()
         self.coyoteCounter -= 1
         
         #movement management
@@ -106,7 +110,7 @@ class Player:
 
 
         #umbrella controller
-        self.umbrella.run(self.pos,scroll,(self.input.get_input('action') and movement[1] > 0 ),self.isFacingLeft)
+        self.umbrella.run(self.pos,scroll,(self.input.get_input('action') and movement[1] > 0 ),self.isFacingLeft,self.color)
 
 
         self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75
@@ -141,7 +145,8 @@ class Player:
         self.drawShadow(self.image,scroll)
 
     
-        self.screen.blit(pygame.transform.flip(self.image, self.isFacingLeft, False), newRect)
+        colorImage = self.set_mask_color(self.get_sprite(),(self.color[0],self.color[1],self.color[2],255),(255,255,255,255))
+        self.screen.blit(pygame.transform.flip(colorImage, self.isFacingLeft, False), newRect)
 
         #hitbox debug
         ##render 

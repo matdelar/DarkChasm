@@ -1,8 +1,9 @@
 import pygame
 import SceneManager
 class Stone:
-    def __init__(self,screen, pos, type = 0) -> None:
+    def __init__(self,screen, pos,database, type = 0) -> None:
         self.screen = screen
+        self.database = database
         self.type = type
         self.sprites = []
         self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone1.png"))
@@ -15,7 +16,7 @@ class Stone:
         self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone8.png"))
         self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone9.png"))
         self.image = self.sprites[self.type]
-        self.scale = SceneManager.Manager.get_sprite_scale()
+        self.scale = self.database.get_sprite_scale()
         self.size = 16*self.scale, 16*self.scale
         self.pos = pos[0]*16*self.scale, pos[1]*16*self.scale
         self.tilepos = pos[0]+1, pos[1]+1
