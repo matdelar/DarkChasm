@@ -1,7 +1,7 @@
 import pygame
 import SceneManager
 class Stone:
-    def __init__(self,screen, pos,database, type = 0) -> None:
+    def __init__(self,screen, pos,database, type = 0, worldPos=None) -> None:
         self.screen = screen
         self.database = database
         self.type = type
@@ -19,8 +19,11 @@ class Stone:
         self.scale = self.database.get_sprite_scale()
         self.size = 16*self.scale, 16*self.scale
         self.pos = pos[0]*16*self.scale, pos[1]*16*self.scale
-        self.tilepos = pos[0]+1, pos[1]+1
+        if worldPos!= None:
+            self.pos = worldPos
         self.rect = self.pos,self.size
+
+        self.tilepos = pos[0]+1, pos[1]+1
         self.rect = pygame.rect.Rect(self.rect)
         self.image = pygame.transform.scale(self.sprites[self.type],self.size)
     

@@ -17,13 +17,12 @@ class Player:
         self.gravityMaxSpeed = 1/60 * self.scale * 100
         self.gravityAceleration = 1/60 * self.scale * 10
         self.gravityActualSpeed = 0
-        self.jumpForce = 15
+        self.jumpForce = self.gravityMaxSpeed*3
         self.jumpMomentum = 0
         self.coyoteTime = 6
         self.coyoteCounter = 0
         self.collisionTypes = False
         self.color = self.database.getColor()
-        print(self.color)
         
         self.sprites = []
         self.sprites.append(pygame.image.load("assets/player/mask.png"))

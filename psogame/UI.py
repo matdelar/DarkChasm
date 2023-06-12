@@ -13,7 +13,7 @@ class Button:
         self.func = func
         self.rect = pygame.Rect(pos,size)
         pygame.font.init()
-        self.font = pygame.font.Font("assets/invasion2000.ttf",self.size[1])
+        self.font = pygame.font.Font("assets/invasion2000.ttf",int(self.size[1]*0.9))
         self.txt_surface = self.font.render(self.text, True, self.textColor)
         self.textPos = self.pos[0]+self.size[0]/2-self.txt_surface.get_width()/2,self.pos[1]
         
@@ -22,7 +22,7 @@ class Button:
         self.rect.w = width
     
     def selected_draw(self):
-        pygame.draw.rect(self.screen,self.color,self.rect)
+        pygame.draw.rect(self.screen,self.color,self.rect,0,3)
 
     def draw(self):
         self.selected_draw() if self.active else True

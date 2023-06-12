@@ -4,7 +4,7 @@ class Database:
     def __init__(self) -> None:
         self.isOnline = True
         self.customColor = (0,0,0)
-        self.cameraZoom = 3
+        self.cameraZoom = 2
         try:
             self.cnn = mysql.connector.connect(
             host="localhost",

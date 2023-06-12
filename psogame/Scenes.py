@@ -5,6 +5,7 @@ from Player import *
 from Tiles import *
 import SceneManager
 import Database
+import LevelMaker
 
 class Menu:
     def __init__(self,screen,clock,database) -> None:
@@ -40,7 +41,6 @@ class Menu:
         return self.newState
 
 class Play:
-
     def __init__(self,screen,clock,database) -> None:
         self.screen = screen
         self.clock = clock
@@ -50,22 +50,16 @@ class Play:
         self.newState = "play"
         self.timer = Timer(self.screen,self.clock,(1*self.pixelSize,10*self.pixelSize),0)
         self.player = Player(self.screen, (200,264),self.database)
-        self.inventory = Inventory(self.screen,self.database)
         self.pauseMenu = PauseMenu(self.screen)
         self.scoreBoard = Text(self.screen,"0",(255,0,0),(1*self.pixelSize,18*self.pixelSize),16)
         self.points = 0
+        self.scale = self.database.get_sprite_scale()
         
-        self.coins = [
-            Coin(self.screen,(240+20,550),database),
-            Coin(self.screen,(280+20,550),database),
-            Coin(self.screen,(320+20,550),database),
-            Coin(self.screen,(360+20,550),database),
-            Coin(self.screen,(400+20,550),database)
-        ]
+        self.coins = []
 
         self.escLock = False
 
-        self.map1 = self.load_matrix("levels/level0.txt")
+        self.map1 = LevelMaker.Generate_map((50,100))
 
         self.scroll = [0,0]
 
@@ -74,24 +68,21 @@ class Play:
             for x in range(len(self.map1[y])):
                 if self.map1[y][x] == 1:
                     self.tiles.append(Stone(self.screen,(x,y),self.database,4)) 
-                    
-        nmap = self.map1
-
-        nmap = [[0] * (len(nmap[0]) + 2)] + [[0] + row + [0] for row in nmap] + [[0] * (len(nmap[0]) + 2)]
-
-        for tile in self.tiles:
-            tile.set_type(nmap)
+                elif self.map1[y][x] == 3:
+                    self.coins.append(Coin(self.screen,(x*self.scale*16,y*self.scale*16),self.database))
 
 
     def run(self,event):
         self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
+        
         for tile in self.tiles:
             tile.draw(self.scroll)
+        print(len(self.coins))
+        
         
         self.player.update(self.tiles,self.scroll)
         self.player.draw(self.scroll)
-        self.scoreBoard.draw(self.points)
 
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
@@ -113,6 +104,7 @@ class Play:
 
         self.timer.update()
         self.timer.draw()
+        self.scoreBoard.draw(self.points)
 
         for c in self.coins:
             if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
@@ -121,8 +113,21 @@ class Play:
             else:
                 c.draw(self.scroll)
 
-        self.inventory.draw()
-
+        self.tileUpdate()
+    
+    def tileUpdate(self):
+        mousePos = pygame.mouse.get_pos()
+        worldPos = (mousePos[0]+self.scroll[0])-(mousePos[0]+self.scroll[0])%(16*self.scale),(mousePos[1]+self.scroll[1])-(mousePos[1]+self.scroll[1])%(16*self.scale)
+        hasNoTile = True
+        for tile in self.tiles:
+            if tile.get_rect().collidepoint(worldPos):
+                hasNoTile = False
+                if pygame.mouse.get_pressed()[2]:  
+                    self.tiles.pop(self.tiles.index(tile))
+        
+        if hasNoTile and pygame.mouse.get_pressed()[0]: 
+            self.tiles.append(Stone(self.screen,worldPos,self.database,4,worldPos))
+                    
 
     def get_State(self):
         return self.newState
@@ -163,15 +168,14 @@ class Edit:
         self.screen.blit(self.player.set_mask_color(self.player.get_sprite(),(self.color[0],self.color[1],self.color[2],255),(255,255,255,255)), (500,100,16,16))
 
         x,y = pygame.mouse.get_pos()
-        if pygame.rect.Rect.collidepoint(self.buttonBack.rect,x,y) and pygame.mouse.get_pressed()[0]:
+        if self.buttonBack.mouse_isOver() and pygame.mouse.get_pressed()[0]:
             self.newState = self.buttonBack.get_func()
             self.newState = "menu"
         self.buttonBack.draw()
 
-        if pygame.rect.Rect.collidepoint(self.buttonSave.rect,x,y) and pygame.mouse.get_pressed()[0]:
+        if self.buttonSave.mouse_isOver() and pygame.mouse.get_pressed()[0]:
             self.database.setColor(self.color)
             self.newState = "menu"
-            print(self.database.getColor())
         self.buttonSave.draw()
         
 
