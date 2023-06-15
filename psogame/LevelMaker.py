@@ -1,18 +1,19 @@
-from perlin_noise import PerlinNoise
 from random import randint
 import math
+import Perlin
 
 def Generate_map(size):
-    noise1 = PerlinNoise(octaves=5)
-    maxPlayerAmount = 1
-    maxCoinAmount = 20
     xpix, ypix = size
+
+    noise_grid = Perlin.generate_noise(xpix, ypix, 5)
+
     pic = []
     for i in range(xpix):
         row = []
         for j in range(ypix):
-            noise_val = 8*noise1([i/xpix, j/ypix])
+            noise_val = noise_grid[i][j]
 
-            row.append(int(math.fabs(noise_val)))
+            row.append(int(math.fabs(noise_val*10)))
         pic.append(row)
+    print(pic)
     return pic

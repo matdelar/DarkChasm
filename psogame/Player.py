@@ -2,6 +2,7 @@ import pygame
 import SceneManager
 from Entities import Umbrella
 from Input import Input 
+from Particle import ParticleEmitter
 
 class Player:
     def __init__(self,screen,pos,database) -> None:
@@ -40,6 +41,7 @@ class Player:
 
         self.lastpos = [0,0]
         self.umbrella = Umbrella(self.screen,self.database)
+        self.particle = ParticleEmitter(self.screen,(15,15),(200,0,0),self.pos,300,10,10,1,0)
 
     def collision_test(self,tiles):
         hit_list = []
@@ -141,6 +143,7 @@ class Player:
             self.frameCount = 0
             self.currentSprite +=1 if self.currentSprite < 5 else -5
 
+        self.particle.draw()
         self.drawShadow(self.image,scroll)
 
     

@@ -78,7 +78,6 @@ class Play:
         
         for tile in self.tiles:
             tile.draw(self.scroll)
-        print(len(self.coins))
         
         
         self.player.update(self.tiles,self.scroll)

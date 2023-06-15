@@ -1,11 +1,14 @@
-import mysql.connector
+import pygame
+import pygbag
+
 
 class Database:
     def __init__(self) -> None:
         self.isOnline = True
         self.customColor = (0,0,0)
-        self.cameraZoom = 2
+        self.cameraZoom = 1
         try:
+            import mysql.connector
             self.cnn = mysql.connector.connect(
             host="localhost",
             user="root",

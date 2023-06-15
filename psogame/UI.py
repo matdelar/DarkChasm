@@ -144,9 +144,7 @@ class TextInput:
         
         if self.active:
             if event.type == pygame.KEYDOWN:
-                print(event.scancode) 
                 if event.key == pygame.K_RETURN:
-                    print(self.text)
                     self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
@@ -272,33 +270,3 @@ class Background:
         self.screen.blit(self.sprite,self.rect)
         self.screen.blit(self.sprite,infRect)
         self.screen.blit(self.sprite,infRect2)
-
-class Inventory:
-    def __init__(self,screen,database):
-        self.screen = screen
-        self.database = database
-        self.scale = self.database.get_sprite_scale()
-        self.backgroundSprite = pygame.image.load("assets/ui/inventory/inventory_bar.png").convert_alpha()
-        self.slotSprite = pygame.image.load("assets/ui/inventory/inventory_slot.png").convert_alpha()
-
-        self.pos = self.screen.get_width()/2-self.backgroundSprite.get_width()/2,self.screen.get_height()-self.backgroundSprite.get_height()/2*self.scale
-        self.sizeBG = [48,48]
-        self.sizeSlot = [16,16]
-        self.items = [None,None,None,None]
-        self.active = 0
-        self.rect = pygame.Rect(self.pos[0],self.pos[1],self.sizeBG[0],self.sizeBG[1])
-
-        self.backgroundSprite = pygame.transform.scale(self.backgroundSprite, (self.sizeBG[0]*self.scale, self.sizeBG[1]*self.scale))
-        self.slotSprite = pygame.transform.scale(self.slotSprite, (self.sizeSlot[0]*self.scale, self.sizeSlot[1]*self.scale))
-    
-    def draw(self):
-        self.screen.blit(self.backgroundSprite,self.rect)
-        for i in range(4):
-            slotPos = [self.pos[0]+sin(radians(i*90))*self.scale*21+self.scale*16,
-                       self.pos[1]+cos(radians(i*90))*self.scale*21+self.scale*16]
-            newRect = slotPos[0],slotPos[1],self.sizeSlot[0],self.sizeSlot[1]
-            self.screen.blit(self.slotSprite,newRect)
-
-
-    def update(self):
-        pass
