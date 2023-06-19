@@ -136,8 +136,8 @@ class Hook:
         self.size = [8*self.scale,8*self.scale]
         self.ropeSize = [4*self.scale,4*self.scale]
         self.ropeSpacing = 1*self.scale
-        self.hookSprite = pygame.image.load("assets/misc/hook/hook_graple.png")
-        self.ropeSprite = pygame.image.load("assets/misc/hook/hook_rope.png")
+        self.hookSprite = pygame.image.load("assets/items/hook/hook_graple.png")
+        self.ropeSprite = pygame.image.load("assets/items/hook/hook_rope.png")
         self.rect = pygame.rect.Rect((self.pos[0],self.pos[1]),(self.size[0],self.size[0]))
         self.distance = 0
         self.hookAngle = 0
@@ -153,14 +153,16 @@ class Hook:
 
         elif self.state == "retracted":
             self.pos =  self.pos[0]+(self.returnSpeed*math.cos(self.hookAngle)*self.scale), self.pos[1]+self.returnSpeed*math.sin(self.hookAngle)*self.scale
-            if self.distance <= 24: # distance should be less than backspd to avoid bugs
+            if self.distance <= self.returnSpeed*2: # distance should be less than backspd to avoid bugs
                 self.state = "dead"
         
         elif self.state == "attached":
-            return -math.cos(math.pi*2-self.hookAngle),math.sin(math.pi*2-self.hookAngle)
+            pass
 
         self.rect.update(self.pos[0],self.pos[1],self.size[0],self.size[1])
         
+    def get_angle(self):
+        return -math.cos(math.pi*2-self.hookAngle),math.sin(math.pi*2-self.hookAngle)
 
     def set_state(self,state):
         self.state = state

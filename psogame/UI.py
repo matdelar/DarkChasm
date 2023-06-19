@@ -17,9 +17,8 @@ class Button:
         self.txt_surface = self.font.render(self.text, True, self.textColor)
         self.textPos = self.pos[0]+self.size[0]/2-self.txt_surface.get_width()/2,self.pos[1]
         
-        
-        width = max(self.rect.w, self.txt_surface.get_width()+10)
-        self.rect.w = width
+        self.rect.w = self.txt_surface.get_width()
+        self.rect.topleft = self.textPos
     
     def selected_draw(self):
         pygame.draw.rect(self.screen,self.color,self.rect,0,3)
@@ -35,6 +34,10 @@ class Button:
     def mouse_isOver(self):
         m = pygame.mouse.get_pos()
         return self.rect.collidepoint(m[0], m[1])
+
+    def getClick(self):
+        return self.mouse_isOver() and pygame.mouse.get_pressed()[0]
+            
     
     def set_active(self, nstate = None):
         if nstate == None:
@@ -195,23 +198,32 @@ class PauseMenu:
         self.font = pygame.font.Font("assets/invasion2000.ttf",30)
         self.txt_surface = self.font.render("0", True, (255,255,255))
         self.txtInput = TextInput(self.screen,(300,200),(100,30),(50,30,50),(70,20,70),(255,255,255))
-        self.button = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(30,200,30))
+        self.btnSend = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(30,200,30))
+        self.btnBack = Button("menu",self.screen,(350,270),(100,30),("Voltar ao Menu"),(255,255,255),(30,200,30))
         self.sendClick = False
     
     def run(self,event,time):
         if self.active:
             pygame.draw.rect(self.screen,self.color,(self.pos[0],self.pos[1],self.size[0],self.size[1]))
             self.txtInput.update(event)
-            self.txtInput.draw()
-            self.button.draw()
 
             self.txt_surface = self.font.render(time, True, (255,255,255))
             self.screen.blit(self.txt_surface,(400,200,100,30))
-            if self.button.mouse_isOver():
-                self.button.set_active(True)
-                self.getSendClick()
+            if self.btnSend.mouse_isOver():
+                self.btnSend.set_active(True)
             else:
-                self.button.set_active(False)
+                self.btnSend.set_active(False)
+            
+            if self.btnBack.mouse_isOver():
+                self.btnBack.set_active(True)
+            else:
+                self.btnBack.set_active(False)
+    
+    def draw(self):
+        self.txtInput.draw()
+        self.btnSend.draw()
+        self.btnBack.draw()
+
     def setActive(self):
         self.active = not self.active
     
@@ -219,7 +231,7 @@ class PauseMenu:
         return self.txtInput.active
     
     def getSendClick(self):
-       return pygame.mouse.get_pressed()[0] and self.button.mouse_isOver()
+       return pygame.mouse.get_pressed()[0] and self.btnSend.mouse_isOver()
 
 class Title:
     def __init__(self,screen,pos) -> None:

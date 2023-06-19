@@ -15,5 +15,4 @@ def Generate_map(size):
 
             row.append(int(math.fabs(noise_val*10)))
         pic.append(row)
-    print(pic)
     return pic

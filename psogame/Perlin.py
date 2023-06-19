@@ -1,6 +1,6 @@
 import math
 import random
-
+import time
 
 def generate_noise(width, height, scale):
     grid = [[0.0] * height for _ in range(width)]
@@ -48,6 +48,6 @@ def lerp(a, b, t):
 
 
 # Generate random gradients
-random.seed(0)
+random.seed(time.time_ns())
 gradients = [[(random.uniform(-1, 1), random.uniform(-1, 1)) for _ in range(256)] for _ in range(256)]
 

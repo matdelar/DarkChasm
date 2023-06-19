@@ -1,32 +1,43 @@
-import pygame
-import pygbag
-
+import sqlite3
 
 class Database:
     def __init__(self) -> None:
         self.isOnline = True
         self.customColor = (0,0,0)
-        self.cameraZoom = 1
+        self.cameraZoom = 3
+        self.rankAmount = 0
         try:
-            import mysql.connector
-            self.cnn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database = "DarkChasmPSOO"
-            )
+            self.cnn = sqlite3.connect("database.db")
             self.c = self.cnn.cursor()
+            print("database reached")
+            self.rankAmount = self.c.execute("select count(*) from rank").fetchone()[0]
+            try:
+                self.c.execute("CREATE TABLE rank(name,time)")
+            except:
+                pass
         except:
             self.isOnline = False
             print("database not reached")
     def insertRank(self,name,time):
         if self.isOnline:
-            add_rank = ("INSERT INTO rank "
-                "(id,name, time) "
-                "VALUES (null,%s, %s)")
-            data_rank = (name, time)
-            self.c.execute(add_rank, data_rank)
+            name,time = str(name),str(time)
+            self.c.execute("INSERT INTO rank VALUES('"+name+"', '"+time+"')")
             self.cnn.commit()
+            self.getRanksAll()
+            self.updateRankAmount()
+    
+    def updateRankAmount(self):
+        self.rankAmount = self.c.execute("select count(*) from rank").fetchone()[0]
+    
+    def getRanksAll(self):
+        if self.isOnline:
+            ranks = self.c.execute("SELECT * FROM RANK")
+            self.cnn.commit()
+            return ranks.fetchall()
+    
+    def delAll(self):
+        self.c.execute("DELETE FROM rank")
+        self.cnn.commit()
         
     def setColor(self,newColor):
         self.customColor = newColor
@@ -35,7 +46,6 @@ class Database:
         return self.customColor
 
     def closeDB(self):
-        self.c.close()
         self.cnn.close()
     
     def set_sprite_scale(self,newZoom):
@@ -43,14 +53,3 @@ class Database:
     
     def get_sprite_scale(self):
         return self.cameraZoom
-
-#create database darkchasmpsooo;
-#use darkchasmpsoo;# MySQL não retornou nenhum registo.
-#CREATE TABLE rank(
-#id int NOT null	AUTO_INCREMENT,
-#name varchar(45) not null,
-#time varchar(45) not null,
-#    PRIMARY KEY (id)
-#
-#);# MySQL não retornou nenhum registo.
-#

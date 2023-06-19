@@ -3,8 +3,6 @@ from UI import *
 from Entities import *
 from Player import *
 from Tiles import *
-import SceneManager
-import Database
 import LevelMaker
 
 class Menu:
@@ -16,9 +14,9 @@ class Menu:
         self.buttonPlay = Button("play", screen, (350,170), (100,20), "Play", (255,255,255),(200,200,200))
         self.buttonLoad = Button("load", screen, (350,200), (100,20), "Load", (255,255,255),(200,200,200))
         self.buttonEdit = Button("edit", screen, (350,230), (100,20), "Edit", (255,255,255),(200,200,200))
-        self.buttonLogn = Button("login",screen, (350,260), (100,20), "Login",(255,255,255),(200,200,200))
+        self.buttonRank = Button("rank", screen, (350,260), (100,20), "Rank",(255,255,255),(200,200,200))
         self.buttonQuit = Button("quit", screen, (350,290), (100,20), "Quit", (255,255,255),(200,200,200))
-        self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit,self.buttonLogn]
+        self.buttons = [self.buttonPlay, self.buttonLoad,self.buttonEdit, self.buttonQuit,self.buttonRank]
         self.activeButton = 0
         self.newState = "menu"
 
@@ -29,7 +27,7 @@ class Menu:
         for button in self.buttons:
             if button.mouse_isOver():
                 button.set_active(True)
-                if pygame.mouse.get_pressed()[0]:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     self.newState = button.func
             else:
                 button.set_active(False)
@@ -70,9 +68,14 @@ class Play:
                     self.tiles.append(Stone(self.screen,(x,y),self.database,4)) 
                 elif self.map1[y][x] == 3:
                     self.coins.append(Coin(self.screen,(x*self.scale*16,y*self.scale*16),self.database))
+        
+        for t in self.tiles:
+            if self.player.rect.colliderect(t.rect):
+                self.tiles.pop(self.tiles.index(t))
 
 
     def run(self,event):
+        self.newState = 'play'
         self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         
@@ -88,7 +91,7 @@ class Play:
             self.escLock = True
             self.pauseMenu.setActive()
             self.timer.toggleTimer()
-            self.player.input.toggleInput()
+            self.player.setCanMove()
         elif not pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.escLock = False
 
@@ -100,10 +103,14 @@ class Play:
         
         elif not self.pauseMenu.getSendClick():
             self.mLock = False
+        
+        if self.pauseMenu.btnBack.getClick() and self.pauseMenu.active:
+            self.newState = self.pauseMenu.btnBack.get_func()
 
         self.timer.update()
         self.timer.draw()
-        self.scoreBoard.draw(self.points)
+        #self.scoreBoard.draw(self.points)
+        self.scoreBoard.draw(self.clock.get_fps())
 
         for c in self.coins:
             if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
@@ -113,6 +120,8 @@ class Play:
                 c.draw(self.scroll)
 
         self.tileUpdate()
+        if self.pauseMenu.active:
+            self.pauseMenu.draw()
     
     def tileUpdate(self):
         mousePos = pygame.mouse.get_pos()
@@ -181,23 +190,33 @@ class Edit:
     def get_State(self):
         return self.newState
 
-class Login:
+class Ranks:
     def __init__(self,screen,database) -> None:
         self.screen = screen
-        self.loginInfo = None
-        self.nickText = TextInput(self.screen,(300,200),(200,15),(50,30,50),(70,20,70),(255,255,255))
-        self.emailText = TextInput(self.screen,(300,220),(200,15),(50,30,50),(70,20,70),(255,255,255))
-        self.passwordText = TextInput(self.screen,(300,240),(200,15),(50,30,50),(70,20,70),(255,255,255))
-        self.newState = "login"
-    
-    def run(self,event):
-        self.nickText.update(event)
-        self.passwordText.update(event)
-        self.emailText.update(event)
+        self.database = database
+        self.rankData = self.database.getRanksAll()
+        self.newState = "rank"
+        self.offsetY = 100
+        self.btnBack = Button("menu",screen,(48,16),(100,50),"Voltar",(255,255,255),(50,50,50))
+        self.text = []
+        for row in self.rankData:
+            self.text.append(Text(self.screen,row[0]+" "+row[1],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20))
 
-        self.nickText.draw()
-        self.passwordText.draw()
-        self.emailText.draw()
-    
+    def run(self,event):
+        self.newState = "rank"
+        if len(self.text) != self.database.rankAmount:
+            self.update()
+        if self.btnBack.mouse_isOver() and pygame.mouse.get_pressed()[0]:
+            self.newState = self.btnBack.get_func()
+        self.btnBack.draw()
+        for t in self.text:
+            t.draw()
+
     def get_State(self):
         return self.newState
+
+    def update(self):
+        self.rankData = self.database.getRanksAll()
+        self.text = []
+        for row in self.rankData:
+            self.text.append(Text(self.screen,row[0]+" "+row[1],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20))

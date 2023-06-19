@@ -1,6 +1,6 @@
 import pygame
 import SceneManager
-from Entities import Umbrella
+from Entities import *
 from Input import Input 
 from Particle import ParticleEmitter
 
@@ -24,6 +24,7 @@ class Player:
         self.coyoteCounter = 0
         self.collisionTypes = False
         self.color = self.database.getColor()
+        self.canMove = True
         
         self.sprites = []
         self.sprites.append(pygame.image.load("assets/player/mask.png"))
@@ -41,6 +42,7 @@ class Player:
 
         self.lastpos = [0,0]
         self.umbrella = Umbrella(self.screen,self.database)
+        self.hook = None
         self.particle = ParticleEmitter(self.screen,(15,15),(200,0,0),self.pos,300,10,10,1,0)
 
     def collision_test(self,tiles):
@@ -49,6 +51,12 @@ class Player:
             if self.rect.colliderect(tile.get_rect()):
                 hit_list.append(tile.get_rect())
         return hit_list
+
+    def setCanMove(self,pause=None):
+        if pause != None:
+            self.canMove = pause
+        else:
+            self.canMove = not self.canMove
 
     def move(self,movement,tiles):
         collision_types = {'top':False,'bottom':False,'right':False,'left':False}
@@ -102,16 +110,36 @@ class Player:
                 self.actualspeed = self.actualspeed - self.speedDecrease if self.actualspeed - self.speedDecrease > 0 else 0
 
         self.gravityActualSpeed = self.gravityActualSpeed + self.gravityAceleration if self.gravityActualSpeed + self.gravityAceleration < self.gravityMaxSpeed else self.gravityMaxSpeed
-    
-
-        
         movement = [self.actualspeed,self.gravityActualSpeed-self.jumpMomentum]
-        if movement[1] > 0 and self.input.get_input('action'):
+
+        if self.input.get_input('action') and self.hook == None:
+            playerPosScroll = self.pos[0]-scroll[0]+self.size[0]//2,self.pos[1]-scroll[1]+self.size[1]//2
+            mouseAngle = math.atan2(pygame.mouse.get_pos()[1]-playerPosScroll[1],pygame.mouse.get_pos()[0]-playerPosScroll[0])
+            self.hook = Hook(self.screen,self.pos,mouseAngle,self.database)
+        elif not self.input.get_input('action') and self.hook != None:
+            self.hook.state = "retracted"
+
+        if self.hook != None:
+            print(self.hook.state,self.hook.distance)
+            if self.hook.state == "retracted" and self.hook.distance <= self.hook.returnSpeed*2:
+                self.hook = None
+
+        hookAngle = 0
+        if self.hook != None:
+            self.hook.update(tiles,self.pos)
+            self.hook.draw(scroll,self.pos)
+
+            if self.hook.state == "attached":
+                hookAngle = self.hook.get_angle()
+                movement = [movement[0]+hookAngle[0]*10,movement[1]+hookAngle[1]*10]
+        
+        
+        movement = [movement[0]*self.canMove,movement[1]*self.canMove]
+        if movement[1] > 0 and self.input.get_input('jump'):
             movement[1] = movement[1]/4
 
 
         #umbrella controller
-        self.umbrella.run(self.pos,scroll,(self.input.get_input('action') and movement[1] > 0 ),self.isFacingLeft,self.color)
 
 
         self.lastpos[0] += (self.pos[0]-self.lastpos[0])*0.75
@@ -119,6 +147,7 @@ class Player:
 
 
         self.pos, onFloor = self.move(movement,tiles)
+        self.umbrella.run(self.pos,scroll,(self.input.get_input('jump') and movement[1] > 0 ),self.isFacingLeft,self.color)
 
         if onFloor['bottom']:
             self.gravityActualSpeed = 0

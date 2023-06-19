@@ -1,5 +1,6 @@
 import pygame
 from Scenes import *
+import Database
 
 class Manager:
     def __init__(self, screen,clock) -> None:
@@ -11,7 +12,7 @@ class Manager:
                         "menu"  : Menu(screen,clock,self.database),
                         "play"  : Play(screen,clock,self.database),
                         "edit"  : Edit(screen,self.database),
-                        "login" : Login(screen,self.database)
+                        "rank"  : Ranks(screen,self.database),
                        
                        }
 

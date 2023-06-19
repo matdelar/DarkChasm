@@ -6,7 +6,7 @@ class Input:
             'left' : pygame.K_a,
             'right' : pygame.K_d,
             'jump' :  pygame.K_SPACE,
-            'action' :  pygame.K_SPACE,
+            'action' :  pygame.K_e,
             'back' : pygame.K_ESCAPE
         }
         self.isActive = True
