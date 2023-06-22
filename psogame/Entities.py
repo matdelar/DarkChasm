@@ -108,10 +108,14 @@ class Coin:
         self.screen = screen
         self.database = database
         self.pos = pos
-        self.size = [8,8]
-        self.scale = self.database.get_sprite_scale()
         self.value = value
+        self.scale = self.database.get_sprite_scale()
+        self.sprite = pygame.image.load("assets/tiles/Tile_Gold.png")
+        self.size = [16,16]
+        self.scaled = pygame.transform.scale(self.sprite,(self.size[0]*self.scale,self.size[1]*self.scale))
+        print((self.size[0]*self.scale,self.size[1]*self.scale))
         self.rect = pos[0],pos[1],self.size[0],self.size[1]
+
 
     def get_value(self):
         return self.value
@@ -120,8 +124,8 @@ class Coin:
         return self.rect
 
     def draw(self,scroll):
-        newRect = pygame.Rect(self.pos[0]-scroll[0],self.pos[1]-scroll[1],self.size[0]*self.scale,self.size[1]*self.scale)
-        pygame.draw.rect(self.screen,(255,0,0),newRect)
+        newRect = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
+        self.screen.blit(self.scaled,newRect)
 
 class Hook:
     def __init__(self, screen, pos, angle,database) -> None:
@@ -174,7 +178,7 @@ class Hook:
         
         pygame.draw.line(self.screen,(93,53,15),
                          (self.pos[0]-scroll[0],self.pos[1]-scroll[1]),
-                         (plrpos[0]-scroll[0]+7*self.scale,plrpos[1]-scroll[1]+16*self.scale), self.scale)
+                         (plrpos[0]-scroll[0]+7*self.scale,plrpos[1]-scroll[1]+16*self.scale), int(self.scale))
 
         dis = math.sqrt(((plrpos[0]-self.pos[0])**2+(plrpos[1]-self.pos[1])**2))
         amount =  dis //(self.ropeSize[0]+self.ropeSpacing*2)

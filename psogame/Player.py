@@ -9,6 +9,8 @@ class Player:
         self.screen = screen
         self.database = database
         self.scale = self.database.get_sprite_scale()
+        pygame.mixer.pre_init()
+        self.som = pygame.mixer.Sound("assets/cavalo.mp3")
         self.input = Input()
         self.pos = pos
         self.maxSpeed = 5
@@ -87,6 +89,7 @@ class Player:
         #movement management
         self.horizontalSpeed = (self.input.get_input('right') - self.input.get_input('left')) 
         if self.input.get_input('jump') and self.coyoteCounter > 0:
+            self.som.play()
             self.jumpMomentum = self.jumpForce
         elif not self.input.get_input('jump') and self.jumpMomentum > 0:
             self.jumpMomentum = self.jumpMomentum/2
@@ -120,7 +123,6 @@ class Player:
             self.hook.state = "retracted"
 
         if self.hook != None:
-            print(self.hook.state,self.hook.distance)
             if self.hook.state == "retracted" and self.hook.distance <= self.hook.returnSpeed*2:
                 self.hook = None
 

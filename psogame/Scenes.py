@@ -86,6 +86,7 @@ class Play:
         self.player.update(self.tiles,self.scroll)
         self.player.draw(self.scroll)
 
+        #print(len(self.coins))
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
             self.escLock = True
@@ -110,7 +111,7 @@ class Play:
         self.timer.update()
         self.timer.draw()
         #self.scoreBoard.draw(self.points)
-        self.scoreBoard.draw(self.clock.get_fps())
+        self.scoreBoard.draw(self.points)
 
         for c in self.coins:
             if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
