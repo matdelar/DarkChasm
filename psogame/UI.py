@@ -240,9 +240,9 @@ class Title:
         self.size = self.sprite.get_size()
         self.rect = self.sprite.get_rect()
         self.pos = pos
-        self.rect.x = self.pos[0]-self.rect.w/2
+        self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
-        self.scale = 3
+        self.scale = 4
         self.time = 0
     
     def draw(self):

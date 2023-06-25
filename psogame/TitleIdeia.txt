@@ -1,0 +1,13 @@
+Coal Burning
+Black with some red dots
+
+set_at(randint) to add dots
+
+few red and black tones
+
+random chance to drop brightness
+
+if black:
+	set_at(red)
+else:
+	randing(red--)

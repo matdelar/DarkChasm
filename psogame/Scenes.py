@@ -9,7 +9,7 @@ class Menu:
     def __init__(self,screen,clock,database) -> None:
         self.screen = screen
         self.clock = clock
-        self.title = Title(self.screen,(200,50))
+        self.title = Title(self.screen,(152,50))
         self.background = Background(self.screen,[1/3,0])
         self.buttonPlay = Button("play", screen, (350,170), (100,20), "Play", (255,255,255),(200,200,200))
         self.buttonLoad = Button("load", screen, (350,200), (100,20), "Load", (255,255,255),(200,200,200))

@@ -6,6 +6,7 @@ pygame.init()
 
 screen = pygame.display.set_mode((800,600))
 pygame.display.set_caption("Dark Chasm")
+pygame.display.set_icon(pygame.image.load("assets/ui/menu/icon.png"))
 
 
 clock = pygame.time.Clock()
