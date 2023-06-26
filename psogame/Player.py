@@ -29,9 +29,12 @@ class Player:
         self.canMove = True
         
         self.sprites = []
-        self.sprites.append(pygame.image.load("assets/player/mask.png"))
-
         self.size = 16*self.scale, 16*self.scale
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/player/mask.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+
+        self.spriteShadow = []
+        self.spriteShadow.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/player/shadow.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+
         self.horizontalSpeed = 0
         self.isFacingLeft = False
 
@@ -47,6 +50,12 @@ class Player:
         self.hook = None
         self.particle = ParticleEmitter(self.screen,(15,15),(200,0,0),self.pos,300,10,10,1,0)
 
+    def setCanMove(self,pause=None):
+        if pause != None:
+            self.canMove = pause
+        else:
+            self.canMove = not self.canMove
+            
     def collision_test(self,tiles):
         hit_list = []
         for tile in tiles:
@@ -54,11 +63,6 @@ class Player:
                 hit_list.append(tile.get_rect())
         return hit_list
 
-    def setCanMove(self,pause=None):
-        if pause != None:
-            self.canMove = pause
-        else:
-            self.canMove = not self.canMove
 
     def move(self,movement,tiles):
         collision_types = {'top':False,'bottom':False,'right':False,'left':False}
@@ -116,7 +120,7 @@ class Player:
         movement = [self.actualspeed,self.gravityActualSpeed-self.jumpMomentum]
 
         if self.input.get_input('action') and self.hook == None:
-            playerPosScroll = self.pos[0]-scroll[0]+self.size[0]//2,self.pos[1]-scroll[1]+self.size[1]//2
+            playerPosScroll = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
             mouseAngle = math.atan2(pygame.mouse.get_pos()[1]-playerPosScroll[1],pygame.mouse.get_pos()[0]-playerPosScroll[0])
             self.hook = Hook(self.screen,self.pos,mouseAngle,self.database)
         elif not self.input.get_input('action') and self.hook != None:
@@ -149,7 +153,7 @@ class Player:
 
 
         self.pos, onFloor = self.move(movement,tiles)
-        self.umbrella.run(self.pos,scroll,(self.input.get_input('jump') and movement[1] > 0 ),self.isFacingLeft,self.color)
+        self.umbrella.run(self.pos,scroll,(self.input.get_input('jump') and movement[1] > 0 ),self.isFacingLeft)
 
         if onFloor['bottom']:
             self.gravityActualSpeed = 0
@@ -175,11 +179,10 @@ class Player:
             self.currentSprite +=1 if self.currentSprite < 5 else -5
 
         self.particle.draw()
-        self.drawShadow(self.image,scroll)
+        self.screen.blit(pygame.transform.flip(self.spriteShadow[self.currentSprite], self.isFacingLeft, False), newRect)
 
     
-        colorImage = self.set_mask_color(self.get_sprite(),(self.color[0],self.color[1],self.color[2],255),(255,255,255,255))
-        self.screen.blit(pygame.transform.flip(colorImage, self.isFacingLeft, False), newRect)
+        self.screen.blit(pygame.transform.flip(self.sprites[self.currentSprite], self.isFacingLeft, False), newRect)
 
         #hitbox debug
         ##render 

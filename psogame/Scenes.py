@@ -58,7 +58,6 @@ class Play:
         self.escLock = False
 
         self.map1 = LevelMaker.Generate_map((50,100))
-
         self.scroll = [0,0]
 
         self.tiles = []
@@ -69,20 +68,14 @@ class Play:
                 elif self.map1[y][x] == 3:
                     self.coins.append(Coin(self.screen,(x*self.scale*16,y*self.scale*16),self.database))
         
-        for t in self.tiles:
-            if self.player.rect.colliderect(t.rect):
-                self.tiles.pop(self.tiles.index(t))
-
 
     def run(self,event):
         self.newState = 'play'
         self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         
-        for tile in self.tiles:
-            tile.draw(self.scroll)
-        
-        
+        for t in self.tiles:
+            t.draw(self.scroll)
         self.player.update(self.tiles,self.scroll)
         self.player.draw(self.scroll)
 
@@ -110,7 +103,6 @@ class Play:
 
         self.timer.update()
         self.timer.draw()
-        #self.scoreBoard.draw(self.points)
         self.scoreBoard.draw(self.points)
 
         for c in self.coins:

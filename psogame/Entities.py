@@ -5,17 +5,25 @@ class Umbrella:
     def __init__(self,screen,database) -> None:
         self.screen = screen
         self.database = database
+        self.scale = self.database.get_sprite_scale()
+        self.color = self.database.getColor()
+        self.size = [16*self.scale,16*self.scale]
         self.sprites = []
-        self.sprites.append(pygame.image.load("assets/items/umbrella/umbrella1.png"))
-        self.sprites.append(pygame.image.load("assets/items/umbrella/umbrella2.png"))
-        self.sprites.append(pygame.image.load("assets/items/umbrella/umbrella3.png"))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella2.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella3.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+
+        self.spriteShadow = []
+        self.spriteShadow.append(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1Shadow1.png").convert_alpha(),self.size))
+        self.spriteShadow.append(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1Shadow2.png").convert_alpha(),self.size))
+        self.spriteShadow.append(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1Shadow3.png").convert_alpha(),self.size))
+
+        
         self.frameCount = 0
         self.currentSprite = 0
         self.image = self.sprites[self.currentSprite]
-        self.scale = self.database.get_sprite_scale()
         
         self.pos = [0,0]
-        self.size = [16*self.scale,16*self.scale]
         self.currentOffset = [0,0]
         self.offsetClosed = [8*self.scale,4*self.scale]
         self.offsetOpen = [0,16*self.scale]
@@ -23,7 +31,7 @@ class Umbrella:
         self.angleSpeed = 30
         self.idleFrame = 0
 
-    def run(self,playerPos,scroll,isOpen,isFacingLeft,color=(0,0,0)):
+    def run(self,playerPos,scroll,isOpen,isFacingLeft):
         self.idleFrame = (self.idleFrame+3) % 360
 
         if isOpen:
@@ -55,10 +63,12 @@ class Umbrella:
         self.image = pygame.transform.rotate(self.sprites[self.currentSprite],self.angle)
         self.image = pygame.transform.scale(self.image,(self.size))
 
-        newRect = pygame.Rect((self.pos[0],self.pos[1]),(self.size[0],self.size[1]))
-        colorImage = self.set_mask_color(self.image,(0,0,0,255),(color[0],color[1],color[2],255))
-        self.drawShadow(self.image)
-        self.screen.blit(colorImage, newRect)
+
+        newRect = self.pos[0]+self.scale,self.pos[1]+self.scale
+
+
+        self.screen.blit(self.spriteShadow[self.currentSprite],newRect)
+        self.screen.blit(self.sprites[self.currentSprite], self.pos)
 
     def draw(self):
         pass
@@ -110,10 +120,9 @@ class Coin:
         self.pos = pos
         self.value = value
         self.scale = self.database.get_sprite_scale()
-        self.sprite = pygame.image.load("assets/tiles/Tile_Gold.png")
+        self.sprite = pygame.image.load("assets/tiles/Tile_Gold.png").convert()
         self.size = [16,16]
         self.scaled = pygame.transform.scale(self.sprite,(self.size[0]*self.scale,self.size[1]*self.scale))
-        print((self.size[0]*self.scale,self.size[1]*self.scale))
         self.rect = pos[0],pos[1],self.size[0],self.size[1]
 
 

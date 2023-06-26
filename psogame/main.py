@@ -1,6 +1,7 @@
 import pygame
 from SceneManager import *
 import asyncio
+import ez_profile
 
 pygame.init()
 
@@ -23,8 +24,8 @@ async def main():
         
         scene.run(event)
 
-        clock.tick(60)
-        #print(int(clk.get_fps()))
+        clock.tick()
+        print(int(clock.get_fps()))
         pygame.display.update()
         await asyncio.sleep(0) 
 

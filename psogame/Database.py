@@ -3,7 +3,7 @@ import sqlite3
 class Database:
     def __init__(self) -> None:
         self.isOnline = True
-        self.customColor = (0,0,0)
+        self.customColor = [0,0,0]
         self.cameraZoom = 3
         self.rankAmount = 0
         try:
@@ -43,6 +43,8 @@ class Database:
         self.customColor = newColor
     
     def getColor(self):
+        if len(self.customColor) == 3:
+            self.customColor.append(255)
         return self.customColor
 
     def closeDB(self):

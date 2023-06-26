@@ -1,20 +1,21 @@
 import pygame
 import SceneManager
-class Stone:
-    def __init__(self,screen, pos,database, type = 0, worldPos=None) -> None:
+class Stone(pygame.sprite.Sprite):
+    def __init__(self,screen, pos,database, type = 0, worldPos=None):
+        pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.database = database
         self.type = type
         self.sprites = []
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone1.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone2.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone3.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone4.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone5.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone6.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone7.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone8.png"))
-        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone9.png"))
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone1.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone2.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone3.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone4.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone5.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone6.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone7.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone8.png").convert())
+        self.sprites.append(pygame.image.load("assets/tiles/Tile_Stone9.png").convert())
         self.image = self.sprites[self.type]
         self.scale = self.database.get_sprite_scale()
         self.size = 16*self.scale, 16*self.scale
@@ -24,20 +25,20 @@ class Stone:
         self.rect = self.pos,self.size
 
         self.tilepos = pos[0]+1, pos[1]+1
+        self.rectStatic = pygame.rect.Rect(self.rect)
         self.rect = pygame.rect.Rect(self.rect)
         self.image = pygame.transform.scale(self.sprites[self.type],self.size)
-    
-    def draw(self,scroll):
-        #aplica scroll da camera e renderiza a imagem
-        npos = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
 
-        self.screen.blit(self.image, npos)
+    def draw(self,scroll):
+        npos = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
+        self.screen.blit(self.image,npos)
+        #aplica scroll da camera e renderiza a imagem
         
         #hitbox debug
         #pygame.draw.rect(self.screen,(255,255,255), self.rect, 3)
 
     def get_rect(self):
-        return self.rect
+        return self.rectStatic
     
     def set_type(self,grid):
         sides = [False,False,False,False,False,False,False,False]
