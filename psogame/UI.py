@@ -198,8 +198,8 @@ class PauseMenu:
         self.font = pygame.font.Font("assets/invasion2000.ttf",30)
         self.txt_surface = self.font.render("0", True, (255,255,255))
         self.txtInput = TextInput(self.screen,(300,200),(100,30),(50,30,50),(70,20,70),(255,255,255))
-        self.btnSend = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(30,200,30))
-        self.btnBack = Button("menu",self.screen,(350,270),(100,30),("Voltar ao Menu"),(255,255,255),(30,200,30))
+        self.btnSend = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(202,207,76))
+        self.btnBack = Button("menu",self.screen,(350,270),(100,30),("Voltar ao Menu"),(255,255,255),(202,207,76))
         self.sendClick = False
     
     def run(self,event,time):
@@ -236,7 +236,7 @@ class PauseMenu:
 class Title:
     def __init__(self,screen,pos) -> None:
         self.screen = screen
-        self.sprite = pygame.image.load("assets/ui/menu/title.png").convert_alpha()
+        self.sprite = pygame.image.load("assets/ui/menu/title2.png").convert_alpha()
         self.size = self.sprite.get_size()
         self.rect = self.sprite.get_rect()
         self.pos = pos
@@ -244,11 +244,10 @@ class Title:
         self.rect.y = self.pos[1]
         self.scale = 4
         self.time = 0
+        self.image = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
     
-    def draw(self):
-        self.time += 1/30
-        self.image = pygame.transform.rotate(self.sprite,degrees(sin(self.time))/20*0)
-        self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
+    def draw(self,dt):
+        self.time += dt * 1/20
         self.rect.y = self.pos[1]+cos(self.time)*10
 
 
@@ -266,8 +265,8 @@ class Background:
         self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
         
 
-    def draw(self,dinamicSpeed=[0,0]):
-        self.pos[0] += self.speed[0]+dinamicSpeed[0]
+    def draw(self,dt,dinamicSpeed=[0,0]):
+        self.pos[0] += (self.speed[0]+dinamicSpeed[0])*dt
         self.rect.x = self.pos[0]
 
         infRect = pygame.Rect(self.pos[0]-self.size[0]*self.scale,self.pos[1],self.size[0]*self.scale,self.size[1]*self.scale)
@@ -282,3 +281,23 @@ class Background:
         self.screen.blit(self.sprite,self.rect)
         self.screen.blit(self.sprite,infRect)
         self.screen.blit(self.sprite,infRect2)
+
+class WorldText:
+    def __init__(self,screen,text,color,worldPos,fontSize,database) -> None:
+        self.screen = screen
+        self.database = database
+        self.text = text
+        self.color = color
+        self.pos = worldPos
+        self.scale = self.database.get_sprite_scale()
+        self.sizeY = fontSize*self.scale
+        pygame.font.init()
+        self.font = pygame.font.Font("assets/invasion2000.ttf",self.sizeY)
+        self.txtRender = self.font.render(self.text,True,self.color)
+        self.size = self.txtRender.get_rect().width,self.txtRender.get_rect().height
+        self.txtRender = self.font.render(self.text,True,self.color)
+    
+    def draw(self,scroll):
+        npos = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
+        self.screen.blit(self.txtRender,npos)
+

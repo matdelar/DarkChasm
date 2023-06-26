@@ -13,14 +13,14 @@ class Player:
         self.som = pygame.mixer.Sound("assets/cavalo.mp3")
         self.input = Input()
         self.pos = pos
-        self.maxSpeed = 5
+        self.maxSpeed = 8
         self.actualspeed = 0
-        self.speedIncrease = 1/60 * self.maxSpeed * 10
-        self.speedDecrease = 1/60 * self.maxSpeed * 6
+        self.speedIncrease = 1/60 * self.maxSpeed * 2
+        self.speedDecrease = 1/60 * self.maxSpeed * 4
         self.gravityMaxSpeed = 1/60 * self.scale * 100
         self.gravityAceleration = 1/60 * self.scale * 10
         self.gravityActualSpeed = 0
-        self.jumpForce = self.gravityMaxSpeed*3
+        self.jumpForce = self.gravityMaxSpeed*6
         self.jumpMomentum = 0
         self.coyoteTime = 6
         self.coyoteCounter = 0
@@ -86,14 +86,14 @@ class Player:
                 collision_types['top'] = True
         return self.rect, collision_types
 
-    def update(self,tiles,scroll):
-        self.color = self.database.getColor()
+    def update(self,tiles,scroll,dt):
+        if self.color != self.database.getColor():
+            self.updateColor()
         self.coyoteCounter -= 1
         
         #movement management
         self.horizontalSpeed = (self.input.get_input('right') - self.input.get_input('left')) 
         if self.input.get_input('jump') and self.coyoteCounter > 0:
-            self.som.play()
             self.jumpMomentum = self.jumpForce
         elif not self.input.get_input('jump') and self.jumpMomentum > 0:
             self.jumpMomentum = self.jumpMomentum/2
@@ -119,7 +119,7 @@ class Player:
         self.gravityActualSpeed = self.gravityActualSpeed + self.gravityAceleration if self.gravityActualSpeed + self.gravityAceleration < self.gravityMaxSpeed else self.gravityMaxSpeed
         movement = [self.actualspeed,self.gravityActualSpeed-self.jumpMomentum]
 
-        if self.input.get_input('action') and self.hook == None:
+        if self.input.get_input('action') and self.hook == None :
             playerPosScroll = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
             mouseAngle = math.atan2(pygame.mouse.get_pos()[1]-playerPosScroll[1],pygame.mouse.get_pos()[0]-playerPosScroll[0])
             self.hook = Hook(self.screen,self.pos,mouseAngle,self.database)
@@ -132,15 +132,16 @@ class Player:
 
         hookAngle = 0
         if self.hook != None:
-            self.hook.update(tiles,self.pos)
             self.hook.draw(scroll,self.pos)
+            if self.canMove:
+                self.hook.update(tiles,self.pos,dt)
 
             if self.hook.state == "attached":
                 hookAngle = self.hook.get_angle()
                 movement = [movement[0]+hookAngle[0]*10,movement[1]+hookAngle[1]*10]
         
         
-        movement = [movement[0]*self.canMove,movement[1]*self.canMove]
+        movement = [movement[0]*self.canMove*dt,movement[1]*self.canMove*dt]
         if movement[1] > 0 and self.input.get_input('jump'):
             movement[1] = movement[1]/4
 
@@ -153,7 +154,7 @@ class Player:
 
 
         self.pos, onFloor = self.move(movement,tiles)
-        self.umbrella.run(self.pos,scroll,(self.input.get_input('jump') and movement[1] > 0 ),self.isFacingLeft)
+        self.umbrella.run(self.pos,scroll,(self.input.get_input('jump') and movement[1] > 0 ),self.isFacingLeft,dt)
 
         if onFloor['bottom']:
             self.gravityActualSpeed = 0
@@ -232,3 +233,9 @@ class Player:
 
     def get_rect(self):
         return self.rect
+
+    def updateColor(self):
+        self.color = self.database.getColor()
+        self.sprites = []
+        self.size = 16*self.scale, 16*self.scale
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/player/mask.png").convert_alpha(),self.size),self.color,(255,255,255,255)))

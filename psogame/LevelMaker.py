@@ -13,7 +13,7 @@ def Generate_map(size,coinCount=250):
         for j in range(ypix):
             noise_val = noise_grid[i][j]
             nval = int(math.fabs(noise_val*10))
-            row.append(nval)
+            row.append(0<nval<3)
 
         pic.append(row)
     
