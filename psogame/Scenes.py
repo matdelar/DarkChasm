@@ -11,11 +11,11 @@ class Menu:
         self.clock = clock
         self.title = Title(self.screen,(152,50))
         self.background = Background(self.screen,[1/3,0])
-        self.buttonPlay = Button("play", screen, (350,170), (100,20), "Iniciar", (255,255,255),(200,200,200))
-        self.buttonTuto = Button("tuto", screen, (350,200), (100,20), "Tutorial", (255,255,255),(200,200,200))
-        self.buttonEdit = Button("edit", screen, (350,230), (100,20), "Customizar", (255,255,255),(200,200,200))
-        self.buttonRank = Button("rank", screen, (350,260), (100,20), "Rank",(255,255,255),(200,200,200))
-        self.buttonQuit = Button("quit", screen, (350,290), (100,20), "Sair", (255,255,255),(200,200,200))
+        self.buttonPlay = Button("play", screen, (350,200), (100,30), "Iniciar",    (220,207,76),(150,100,150))
+        self.buttonTuto = Button("tuto", screen, (350,240), (100,30), "Tutorial",   (220,207,76),(150,100,150))
+        self.buttonEdit = Button("edit", screen, (350,280), (100,30), "Customizar", (220,207,76),(150,100,150))
+        self.buttonRank = Button("rank", screen, (350,320), (100,30), "Rank",       (220,207,76),(150,100,150))
+        self.buttonQuit = Button("quit", screen, (350,360), (100,30), "Sair",       (220,207,76),(150,100,150))
         self.buttons = [self.buttonPlay, self.buttonTuto,self.buttonEdit, self.buttonQuit,self.buttonRank]
         self.activeButton = 0
         self.newState = "menu"
@@ -193,9 +193,17 @@ class Ranks:
         self.offsetY = 100
         self.btnBack = Button("menu",screen,(48,16),(100,50),"Voltar",(255,255,255),(50,50,50))
         self.text = []
-        for row in self.rankData:
-            self.text.append(Text(self.screen,row[0]+" "+row[1],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20))
-
+        if self.database.isOnline:
+            
+                for row in self.rankData:
+                    try:
+                        t1 = Text(self.screen,row[0],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20)
+                        t2 = Text(self.screen,str(row[1]),(255,255,255),(400,100+self.offsetY+15*self.rankData.index(row)),20)
+                        t2.setPos((400-t2.rect.w,100+self.offsetY+15*self.rankData.index(row)))
+                        self.text.append(t1)
+                        self.text.append(t2)
+                    except IndexError:
+                        print(row)
     def run(self,event,dt):
         self.newState = "rank"
         if len(self.text) != self.database.rankAmount:
@@ -212,8 +220,13 @@ class Ranks:
     def update(self):
         self.rankData = self.database.getRanksAll()
         self.text = []
+        self.btnBack.set_active(self.btnBack.mouse_isOver())
         for row in self.rankData:
-            self.text.append(Text(self.screen,row[0]+" "+row[1],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20))
+            t1 = Text(self.screen,row[0],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20)
+            t2 = Text(self.screen,str(row[1]),(255,255,255),(400,100+self.offsetY+15*self.rankData.index(row)),20)
+            t2.setPos((450-t2.rect.w,100+self.offsetY+15*self.rankData.index(row)))
+            self.text.append(t1)
+            self.text.append(t2)
 
 class Tutorial:
     def __init__(self,screen,clock,database) -> None:
@@ -222,19 +235,30 @@ class Tutorial:
         self.database = database
         self.pixelSize = self.database.get_sprite_scale()
         self.maps = None
-        self.newState = "play"
+        self.newState = "tuto"
         self.timer = Timer(self.screen,self.clock,(3,30),0)
         self.player = Player(self.screen, (200,264),self.database)
         self.pauseMenu = PauseMenu(self.screen)
         self.scoreBoard = Text(self.screen,"0",(255,0,0),(3,54),16)
         self.points = 0
         self.scale = self.database.get_sprite_scale()
-        self.tutText = WorldText(self.screen,"A e D para andar",(220,207,76),(100,200),5,self.database)
+        self.tutTexts = []
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(100,   500),10,self.database,"A e D: andar"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(500,   500),10,self.database,"pegue todos os blocos de ouro"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(1300,  500),10,self.database,"ESPACO: pular"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(1600,  400),10,self.database,"Segurar ESPACO: planar com o guarda-chuva"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(3650,  600),10,self.database,"E: usar o gancho"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(3650,  700),10,self.database,"o gancho vai na direcao do mouse"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(3850,  300),10,self.database,"Botao direito do mouse: remover bloco"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(3850,  400),10,self.database,"Botao esquerdo do mouse: colocar bloco"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(4500,  600),10,self.database,"Fim do tutorial!"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(4400, 1000),10,self.database,"Esc para salvar seu tempo e"))
+        self.tutTexts.append(WorldText(self.screen,(220,207,76),(4400, 1030),10,self.database,"voltar ao menu"))
         self.coins = []
 
         self.escLock = False
 
-        self.map1 = self.load_matrix("levels/level0.txt")
+        self.map1 = self.load_matrix("levels/tutorial.txt")
         self.scroll = [0,0]
 
         self.tiles = []
@@ -247,7 +271,7 @@ class Tutorial:
         
 
     def run(self,event,dt):
-        self.newState = 'play'
+        self.newState = 'tuto'
         self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
         
@@ -290,7 +314,9 @@ class Tutorial:
                 c.draw(self.scroll)
 
         self.tileUpdate()
-        self.tutText.draw(self.scroll)
+        for t in self.tutTexts:
+            t.draw(self.scroll)
+
         if self.pauseMenu.active:
             self.pauseMenu.draw()
     
@@ -318,7 +344,5 @@ class Tutorial:
         lines = [line.strip() for line in lines]
 
         matrix = [[int(pixel) for pixel in line.split()] for line in lines]
-
-        matrix = [[1 if pixel > 0 else 0 for pixel in row] for row in matrix]
 
         return matrix

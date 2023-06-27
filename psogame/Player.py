@@ -20,7 +20,7 @@ class Player:
         self.gravityMaxSpeed = 1/60 * self.scale * 100
         self.gravityAceleration = 1/60 * self.scale * 10
         self.gravityActualSpeed = 0
-        self.jumpForce = self.gravityMaxSpeed*6
+        self.jumpForce = self.gravityMaxSpeed*3
         self.jumpMomentum = 0
         self.coyoteTime = 6
         self.coyoteCounter = 0

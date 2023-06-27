@@ -21,7 +21,7 @@ class Button:
         self.rect.topleft = self.textPos
     
     def selected_draw(self):
-        pygame.draw.rect(self.screen,self.color,self.rect,0,3)
+        pygame.draw.rect(self.screen,self.color,self.rect,0)
 
     def draw(self):
         self.selected_draw() if self.active else True
@@ -176,7 +176,7 @@ class Text:
         
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",self.fontSize)
-        self.txt_surface = self.font.render(self.text, True, self.color)
+        self.txt_surface = self.font.render(str(self.text), True, self.color)
         self.rect = pygame.Rect(self.pos[0],self.pos[1],self.txt_surface.get_width(),self.fontSize)
     
     def draw(self,newText=None):
@@ -186,18 +186,21 @@ class Text:
             self.screen.blit(newTxt_surface,newRect)
         else:
             self.screen.blit(self.txt_surface,self.rect)
+    
+    def setPos(self,pos):
+        self.rect.update(pos,self.rect.size)
 
 class PauseMenu:
     def __init__(self,screen) -> None:
         self.screen = screen
-        self.pos = (300,200)
-        self.size = (200,200)
+        self.pos = (250,150)
+        self.size = (300,300)
         self.color = (30,20,30)
         self.active = False
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",30)
         self.txt_surface = self.font.render("0", True, (255,255,255))
-        self.txtInput = TextInput(self.screen,(300,200),(100,30),(50,30,50),(70,20,70),(255,255,255))
+        self.txtInput = TextInput(self.screen,(340,200),(120,30),(50,30,50),(70,20,70),(255,255,255))
         self.btnSend = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(202,207,76))
         self.btnBack = Button("menu",self.screen,(350,270),(100,30),("Voltar ao Menu"),(255,255,255),(202,207,76))
         self.sendClick = False
@@ -208,7 +211,7 @@ class PauseMenu:
             self.txtInput.update(event)
 
             self.txt_surface = self.font.render(time, True, (255,255,255))
-            self.screen.blit(self.txt_surface,(400,200,100,30))
+            self.screen.blit(self.txt_surface,(400-self.txt_surface.get_width()/2,230,100,30))
             if self.btnSend.mouse_isOver():
                 self.btnSend.set_active(True)
             else:
@@ -283,7 +286,7 @@ class Background:
         self.screen.blit(self.sprite,infRect2)
 
 class WorldText:
-    def __init__(self,screen,text,color,worldPos,fontSize,database) -> None:
+    def __init__(self,screen,color,worldPos,fontSize,database,text) -> None:
         self.screen = screen
         self.database = database
         self.text = text

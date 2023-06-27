@@ -21,6 +21,5 @@ class Manager:
         if self.state == "quit" or self.state ==None:
             pygame.quit()
         else:
-            print(self.scenes[self.state])
             self.scenes[self.state].run(event,dt)
             self.state = self.scenes[self.state].get_State()

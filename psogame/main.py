@@ -31,7 +31,7 @@ async def main():
         
         scene.run(event,dt)
 
-        clock.tick()
+        clock.tick(60)
         #print(int(clock.get_fps()))
         #print(int(clock.get_fps()),dt)
         pygame.display.update()

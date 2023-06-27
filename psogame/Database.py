@@ -10,18 +10,20 @@ class Database:
             self.cnn = sqlite3.connect("database.db")
             self.c = self.cnn.cursor()
             print("database reached")
+            
+            self.c.execute("CREATE TABLE if not exists rank(name varchar(45),time decimal(4,3))")
+            self.cnn.commit()   
+
+
             self.rankAmount = self.c.execute("select count(*) from rank").fetchone()[0]
-            try:
-                self.c.execute("CREATE TABLE rank(name,time)")
-            except:
-                pass
+            
         except:
-            self.isOnline = False
+            #self.isOnline = False
             print("database not reached")
     def insertRank(self,name,time):
         if self.isOnline:
             name,time = str(name),str(time)
-            self.c.execute("INSERT INTO rank VALUES('"+name+"', '"+time+"')")
+            self.c.execute("INSERT INTO rank VALUES('"+name+"', "+time+")")
             self.cnn.commit()
             self.getRanksAll()
             self.updateRankAmount()
@@ -31,10 +33,14 @@ class Database:
     
     def getRanksAll(self):
         if self.isOnline:
-            ranks = self.c.execute("SELECT * FROM RANK")
+            if self.rankAmount > 4:
+                ranks = self.c.execute("SELECT * FROM rank ORDER BY time ASC LIMIT 5")
+            else:
+                ranks = self.c.execute("SELECT * FROM rank ORDER BY time ASC")
             self.cnn.commit()
             return ranks.fetchall()
-    
+           
+
     def delAll(self):
         self.c.execute("DELETE FROM rank")
         self.cnn.commit()
