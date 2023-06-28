@@ -43,12 +43,15 @@ class Player:
         self.frameCount = 0
 
         self.rect = self.image.get_rect()
-        self.rect.topleft = self.pos[0]+24, self.pos[1]
+        self.rect.topleft = self.pos[0], self.pos[1]
 
         self.lastpos = [0,0]
         self.umbrella = Umbrella(self.screen,self.database)
         self.hook = None
         self.particle = ParticleEmitter(self.screen,(15,15),(200,0,0),self.pos,300,10,10,1,0)
+
+    def setPos(self,newPos):
+        self.rect.topleft = newPos[0], newPos[1]
 
     def setCanMove(self,pause=None):
         if pause != None:

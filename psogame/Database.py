@@ -11,7 +11,7 @@ class Database:
             self.c = self.cnn.cursor()
             print("database reached")
             
-            self.c.execute("CREATE TABLE if not exists rank(name varchar(45),time decimal(4,3))")
+            self.c.execute("CREATE TABLE if not exists rank(name varchar(45),time decimal(4,3),gold int(10))")
             self.cnn.commit()   
 
 
@@ -20,10 +20,10 @@ class Database:
         except:
             #self.isOnline = False
             print("database not reached")
-    def insertRank(self,name,time):
+    def insertRank(self,name,time,points):
         if self.isOnline:
-            name,time = str(name),str(time)
-            self.c.execute("INSERT INTO rank VALUES('"+name+"', "+time+")")
+            name,time,points = str(name),str(time),str(points)
+            self.c.execute("INSERT INTO rank VALUES('"+name+"', "+time+","+points+")")
             self.cnn.commit()
             self.getRanksAll()
             self.updateRankAmount()
@@ -34,9 +34,9 @@ class Database:
     def getRanksAll(self):
         if self.isOnline:
             if self.rankAmount > 4:
-                ranks = self.c.execute("SELECT * FROM rank ORDER BY time ASC LIMIT 5")
+                ranks = self.c.execute("SELECT * FROM rank ORDER BY time,gold ASC LIMIT 5")
             else:
-                ranks = self.c.execute("SELECT * FROM rank ORDER BY time ASC")
+                ranks = self.c.execute("SELECT * FROM rank ORDER BY time,gold ASC")
             self.cnn.commit()
             return ranks.fetchall()
            

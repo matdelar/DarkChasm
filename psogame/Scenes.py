@@ -43,67 +43,37 @@ class Play:
         self.screen = screen
         self.clock = clock
         self.database = database
-        self.pixelSize = self.database.get_sprite_scale()
+        self.scale = self.database.get_sprite_scale()
         self.maps = None
         self.newState = "play"
         self.timer = Timer(self.screen,self.clock,(3,30),0)
         self.player = Player(self.screen, (200,264),self.database)
         self.pauseMenu = PauseMenu(self.screen)
-        self.scoreBoard = Text(self.screen,"0",(255,0,0),(3,54),16)
+        self.scoreBoard = Text(self.screen,"0",(220,206,76),(10,10),32)
         self.points = 0
-        self.scale = self.database.get_sprite_scale()
-        
-        self.coins = []
-
-        self.escLock = False
 
         self.map1 = LevelMaker.Generate_map((50,100))
         self.scroll = [0,0]
-
         self.tiles = []
-        for y in range(len(self.map1)):
-            for x in range(len(self.map1[y])):
-                if self.map1[y][x] == 1:
-                    self.tiles.append(Stone(self.screen,(x,y),self.database,4)) 
-                elif self.map1[y][x] == 3:
-                    self.coins.append(Coin(self.screen,(x*self.scale*16,y*self.scale*16),self.database))
-        
+        self.coins = []
+        self.resetMap()
+        self.doReset = False
 
     def run(self,event,dt):
+        if self.doReset:
+            self.resetMap()
+            self.doReset = False
+
         self.newState = 'play'
-        self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
-        self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
+        self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-8*self.scale)/20 
+        self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-8*self.scale)/20
         
+        self.tileUpdate()
         for t in self.tiles:
             t.draw(self.scroll)
         self.player.update(self.tiles,self.scroll,dt)
         self.player.draw(self.scroll)
 
-        #print(len(self.coins))
-
-        if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
-            self.escLock = True
-            self.pauseMenu.setActive()
-            self.timer.toggleTimer()
-            self.player.setCanMove()
-        elif not pygame.key.get_pressed()[pygame.K_ESCAPE]:
-            self.escLock = False
-
-        self.pauseMenu.run(event,self.timer.getTime())
-
-        if self.pauseMenu.getSendClick() and self.pauseMenu.active and not self.mLock:
-            self.mLock = True
-            self.database.insertRank(self.pauseMenu.txtInput.text,self.timer.getTime())
-        
-        elif not self.pauseMenu.getSendClick():
-            self.mLock = False
-        
-        if self.pauseMenu.btnBack.getClick() and self.pauseMenu.active:
-            self.newState = self.pauseMenu.btnBack.get_func()
-
-        self.timer.update()
-        self.timer.draw()
-        self.scoreBoard.draw(self.points)
 
         for c in self.coins:
             if pygame.Rect.colliderect(self.player.rect,c.get_rect()):
@@ -112,9 +82,24 @@ class Play:
             else:
                 c.draw(self.scroll)
 
-        self.tileUpdate()
-        if self.pauseMenu.active:
-            self.pauseMenu.draw()
+        self.scoreBoard.draw(self.points)
+        if self.player.input.get_input('back'):
+            self.newState = 'menu'
+            self.doReset = True
+    
+    def resetMap(self):
+        self.points = 0
+        self.map1 = LevelMaker.Generate_map((50,100))
+        self.scroll = [0,0]
+        self.player.setPos((200,-16))
+        self.tiles = []
+        self.coins = []
+        for y in range(len(self.map1)):
+            for x in range(len(self.map1[y])):
+                if self.map1[y][x] == 1:
+                    self.tiles.append(Stone(self.screen,(x,y),self.database,4)) 
+                elif self.map1[y][x] == 3:
+                    self.coins.append(Coin(self.screen,(x*self.scale*16,y*self.scale*16),self.database))
     
     def tileUpdate(self):
         mousePos = pygame.mouse.get_pos()
@@ -123,10 +108,10 @@ class Play:
         for tile in self.tiles:
             if tile.get_rect().collidepoint(worldPos):
                 hasNoTile = False
-                if pygame.mouse.get_pressed()[2]:  
+                if self.player.input.get_input('tileRemove',True):  
                     self.tiles.pop(self.tiles.index(tile))
         
-        if hasNoTile and pygame.mouse.get_pressed()[0]: 
+        if hasNoTile and self.player.input.get_input('tilePlace',True): 
             self.tiles.append(Stone(self.screen,worldPos,self.database,4,worldPos))
                     
 
@@ -169,15 +154,13 @@ class Edit:
         #pygame.draw.rect(self.screen,(v[0],v[1],v[2]),(500,200,100,100))
         self.screen.blit(self.player.set_mask_color(self.player.get_sprite(),(self.color[0],self.color[1],self.color[2],255),(255,255,255,255)), (500,100,16,16))
 
-        x,y = pygame.mouse.get_pos()
         if self.buttonBack.mouse_isOver() and pygame.mouse.get_pressed()[0]:
             self.newState = self.buttonBack.get_func()
-            self.newState = "menu"
         self.buttonBack.draw()
 
         if self.buttonSave.mouse_isOver() and pygame.mouse.get_pressed()[0]:
             self.database.setColor(self.color)
-            self.newState = "menu"
+            self.newState = self.buttonSave.get_func()
         self.buttonSave.draw()
         
 
@@ -191,19 +174,22 @@ class Ranks:
         self.rankData = self.database.getRanksAll()
         self.newState = "rank"
         self.offsetY = 100
-        self.btnBack = Button("menu",screen,(48,16),(100,50),"Voltar",(255,255,255),(50,50,50))
+        self.btnBack = Button("menu",screen,(48,16),(100,50),"Voltar",(220,206,76),(50,50,50))
         self.text = []
         if self.database.isOnline:
-            
                 for row in self.rankData:
                     try:
-                        t1 = Text(self.screen,row[0],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20)
+                        t1 = Text(self.screen,str(row[0]),(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20)
                         t2 = Text(self.screen,str(row[1]),(255,255,255),(400,100+self.offsetY+15*self.rankData.index(row)),20)
                         t2.setPos((400-t2.rect.w,100+self.offsetY+15*self.rankData.index(row)))
+                        t3 = Text(self.screen,str(row[1]),(255,255,255),(400,100+self.offsetY+15*self.rankData.index(row)),20)
+                        t3.setPos((500-t3.rect.w,100+self.offsetY+15*self.rankData.index(row)))
                         self.text.append(t1)
                         self.text.append(t2)
-                    except IndexError:
-                        print(row)
+                        self.text.append(t3)
+                    except:
+                        pass
+       
     def run(self,event,dt):
         self.newState = "rank"
         if len(self.text) != self.database.rankAmount:
@@ -222,11 +208,14 @@ class Ranks:
         self.text = []
         self.btnBack.set_active(self.btnBack.mouse_isOver())
         for row in self.rankData:
-            t1 = Text(self.screen,row[0],(255,255,255),(300,100+self.offsetY+15*self.rankData.index(row)),20)
-            t2 = Text(self.screen,str(row[1]),(255,255,255),(400,100+self.offsetY+15*self.rankData.index(row)),20)
-            t2.setPos((450-t2.rect.w,100+self.offsetY+15*self.rankData.index(row)))
+            t1 = Text(self.screen,str(row[0]),(220,206,76),(200,100+self.offsetY+15*self.rankData.index(row)),20)
+            t2 = Text(self.screen,str(row[1]),(220,206,76),(400,100+self.offsetY+15*self.rankData.index(row)),20)
+            t3 = Text(self.screen,str(row[2]),(220,206,76),(500,100+self.offsetY+15*self.rankData.index(row)),20)
+            t2.setPos((400-t2.rect.w,100+self.offsetY+15*self.rankData.index(row)))
+            t3.setPos((500-t3.rect.w,100+self.offsetY+15*self.rankData.index(row)))
             self.text.append(t1)
             self.text.append(t2)
+            self.text.append(t3)
 
 class Tutorial:
     def __init__(self,screen,clock,database) -> None:
@@ -237,7 +226,7 @@ class Tutorial:
         self.maps = None
         self.newState = "tuto"
         self.timer = Timer(self.screen,self.clock,(3,30),0)
-        self.player = Player(self.screen, (200,264),self.database)
+        self.player = Player(self.screen, (200,364),self.database)
         self.pauseMenu = PauseMenu(self.screen)
         self.scoreBoard = Text(self.screen,"0",(255,0,0),(3,54),16)
         self.points = 0
@@ -254,13 +243,19 @@ class Tutorial:
         self.tutTexts.append(WorldText(self.screen,(220,207,76),(4500,  600),10,self.database,"Fim do tutorial!"))
         self.tutTexts.append(WorldText(self.screen,(220,207,76),(4400, 1000),10,self.database,"Esc para salvar seu tempo e"))
         self.tutTexts.append(WorldText(self.screen,(220,207,76),(4400, 1030),10,self.database,"voltar ao menu"))
-        self.coins = []
 
         self.escLock = False
 
         self.map1 = self.load_matrix("levels/tutorial.txt")
         self.scroll = [0,0]
 
+        self.player.input.setKeyState('jump',False)
+        self.player.input.setKeyState('action',False)
+        self.player.input.setKeyState('tilePlace',False)
+        self.player.input.setKeyState('tileRemove',False)
+
+
+        self.coins = []
         self.tiles = []
         for y in range(len(self.map1)):
             for x in range(len(self.map1[y])):
@@ -274,6 +269,13 @@ class Tutorial:
         self.newState = 'tuto'
         self.scroll[0] += (self.player.rect.topleft[0]-self.scroll[0]-400-7*self.pixelSize)/20 
         self.scroll[1] += (self.player.rect.topleft[1]-self.scroll[1]-300-16*self.pixelSize)/20
+        if self.player.pos[0]>1300:
+            self.player.input.setKeyState('jump',True)
+        if self.player.pos[0]>3650:
+            self.player.input.setKeyState('action',True)
+        if self.player.pos[0]>3850:
+            self.player.input.setKeyState('tilePlace',True)
+            self.player.input.setKeyState('tileRemove',True)
         
         for t in self.tiles:
             t.draw(self.scroll)
@@ -283,25 +285,23 @@ class Tutorial:
         #print(len(self.coins))
 
         if pygame.key.get_pressed()[pygame.K_ESCAPE] and not self.escLock:
-            self.escLock = True
             self.pauseMenu.setActive()
-            self.timer.toggleTimer()
-            self.player.setCanMove()
+            self.escLock = True
+            
         elif not pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.escLock = False
 
         self.pauseMenu.run(event,self.timer.getTime())
+        self.timer.toggleTimer(not self.pauseMenu.active)
+        self.player.setCanMove(not self.pauseMenu.active)
 
         if self.pauseMenu.getSendClick() and self.pauseMenu.active and not self.mLock:
             self.mLock = True
-            self.database.insertRank(self.pauseMenu.txtInput.text,self.timer.getTime())
+            self.database.insertRank(self.pauseMenu.txtInput.text,self.timer.getTime(),self.points)
         
         elif not self.pauseMenu.getSendClick():
             self.mLock = False
         
-        if self.pauseMenu.btnBack.getClick() and self.pauseMenu.active:
-            self.newState = self.pauseMenu.btnBack.get_func()
-
         self.timer.update()
         self.timer.draw()
         self.scoreBoard.draw(self.points)
@@ -319,6 +319,11 @@ class Tutorial:
 
         if self.pauseMenu.active:
             self.pauseMenu.draw()
+        
+        if self.pauseMenu.btnBack.getClick() and self.pauseMenu.active:
+            self.newState = self.pauseMenu.btnBack.get_func()
+            self.restart()
+
     
     def tileUpdate(self):
         mousePos = pygame.mouse.get_pos()
@@ -327,10 +332,10 @@ class Tutorial:
         for tile in self.tiles:
             if tile.get_rect().collidepoint(worldPos):
                 hasNoTile = False
-                if pygame.mouse.get_pressed()[2]:  
+                if self.player.input.get_input('tileRemove',True):  
                     self.tiles.pop(self.tiles.index(tile))
         
-        if hasNoTile and pygame.mouse.get_pressed()[0]: 
+        if hasNoTile and self.player.input.get_input('tilePlace',True): 
             self.tiles.append(Stone(self.screen,worldPos,self.database,4,worldPos))
                     
 
@@ -346,3 +351,22 @@ class Tutorial:
         matrix = [[int(pixel) for pixel in line.split()] for line in lines]
 
         return matrix
+    
+    def restart(self):
+        self.pauseMenu.active = False
+        self.timer.time = 0
+        self.player.setPos((200,364))
+        self.player.input.setKeyState('jump',False)
+        self.player.input.setKeyState('action',False)
+        self.player.input.setKeyState('tilePlace',False)
+        self.player.input.setKeyState('tileRemove',False)
+
+        self.scroll = [0,0]
+        self.coins = []
+        self.tiles = []
+        for y in range(len(self.map1)):
+            for x in range(len(self.map1[y])):
+                if self.map1[y][x] == 1:
+                    self.tiles.append(Stone(self.screen,(x,y),self.database,4)) 
+                elif self.map1[y][x] == 3:
+                    self.coins.append(Coin(self.screen,(x*self.scale*16,y*self.scale*16),self.database))

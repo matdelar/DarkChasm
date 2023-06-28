@@ -15,7 +15,6 @@ clock = pygame.time.Clock()
 scene = Manager(screen,clock)
 
 
-
 async def main():
     last_time = time.time()
 

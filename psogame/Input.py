@@ -7,15 +7,26 @@ class Input:
             'right' : pygame.K_d,
             'jump' :  pygame.K_SPACE,
             'action' :  pygame.K_e,
-            'back' : pygame.K_ESCAPE
+            'back' : pygame.K_ESCAPE,
+            'tilePlace' : 0,
+            'tileRemove' : 2
+        }
+        self.keyActive = {
+            'left'  : True,
+            'right' : True,
+            'jump'  : True,
+            'action': True,
+            'back'  : True,
+            'tilePlace' : True,
+            'tileRemove' : True
         }
         self.isActive = True
 
-    def get_input(self,key):
-        keyPressed = pygame.key.get_pressed()
-        if not self.isActive:
-            return False
-        return keyPressed[self.keys[key]] 
+    def get_input(self,key,isMouse=False):
+        if isMouse:
+            return pygame.mouse.get_pressed()[self.keys[key]] and self.keyActive[key]
+        else:
+            return pygame.key.get_pressed()[self.keys[key]]  and self.keyActive[key]
     
     def set_input(self,key,value):
         self.keys[key] = value
@@ -31,6 +42,13 @@ class Input:
             'left' : pygame.K_a,
             'right' : pygame.K_d,
             'jump' :  pygame.K_SPACE,
-            'action' :  pygame.K_SPACE,
-            'back' : pygame.K_ESCAPE
+            'action' :  pygame.K_e,
+            'back' : pygame.K_ESCAPE,
+            'tilePlace' : 0,
+            'tileRemove' : 2
         }
+    def setKeyState(self,key,state=None):
+        if state:
+            self.keyActive[key] = state
+        else:
+            self.keyActive[key] = not self.keyActive[key]
