@@ -13,16 +13,15 @@ class Button:
         self.func = func
         self.rect = pygame.Rect(pos,size)
         pygame.font.init()
-        self.font = pygame.font.Font("assets/invasion2000.ttf",self.size[1])
+        self.font = pygame.font.Font("assets/invasion2000.ttf",int(self.size[1]*0.9))
         self.txt_surface = self.font.render(self.text, True, self.textColor)
         self.textPos = self.pos[0]+self.size[0]/2-self.txt_surface.get_width()/2,self.pos[1]
         
-        
-        width = max(self.rect.w, self.txt_surface.get_width()+10)
-        self.rect.w = width
+        self.rect.w = self.txt_surface.get_width()
+        self.rect.topleft = self.textPos
     
     def selected_draw(self):
-        pygame.draw.rect(self.screen,self.color,self.rect)
+        pygame.draw.rect(self.screen,self.color,self.rect,0)
 
     def draw(self):
         self.selected_draw() if self.active else True
@@ -35,6 +34,10 @@ class Button:
     def mouse_isOver(self):
         m = pygame.mouse.get_pos()
         return self.rect.collidepoint(m[0], m[1])
+
+    def getClick(self):
+        return self.mouse_isOver() and pygame.mouse.get_pressed()[0]
+            
     
     def set_active(self, nstate = None):
         if nstate == None:
@@ -144,9 +147,7 @@ class TextInput:
         
         if self.active:
             if event.type == pygame.KEYDOWN:
-                print(event.scancode) 
                 if event.key == pygame.K_RETURN:
-                    print(self.text)
                     self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
@@ -175,7 +176,7 @@ class Text:
         
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",self.fontSize)
-        self.txt_surface = self.font.render(self.text, True, self.color)
+        self.txt_surface = self.font.render(str(self.text), True, self.color)
         self.rect = pygame.Rect(self.pos[0],self.pos[1],self.txt_surface.get_width(),self.fontSize)
     
     def draw(self,newText=None):
@@ -185,35 +186,47 @@ class Text:
             self.screen.blit(newTxt_surface,newRect)
         else:
             self.screen.blit(self.txt_surface,self.rect)
+    
+    def setPos(self,pos):
+        self.rect.update(pos,self.rect.size)
 
 class PauseMenu:
     def __init__(self,screen) -> None:
         self.screen = screen
-        self.pos = (300,200)
-        self.size = (200,200)
+        self.pos = (250,150)
+        self.size = (300,300)
         self.color = (30,20,30)
         self.active = False
         pygame.font.init()
         self.font = pygame.font.Font("assets/invasion2000.ttf",30)
         self.txt_surface = self.font.render("0", True, (255,255,255))
-        self.txtInput = TextInput(self.screen,(300,200),(100,30),(50,30,50),(70,20,70),(255,255,255))
-        self.button = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(30,200,30))
+        self.txtInput = TextInput(self.screen,(340,200),(120,30),(50,30,50),(70,20,70),(255,255,255))
+        self.btnSend = Button("insertRank",self.screen,(350,300),(100,30),("Enviar"),(255,255,255),(202,207,76))
+        self.btnBack = Button("menu",self.screen,(350,270),(100,30),("Voltar ao Menu"),(255,255,255),(202,207,76))
         self.sendClick = False
     
     def run(self,event,time):
         if self.active:
             pygame.draw.rect(self.screen,self.color,(self.pos[0],self.pos[1],self.size[0],self.size[1]))
             self.txtInput.update(event)
-            self.txtInput.draw()
-            self.button.draw()
 
             self.txt_surface = self.font.render(time, True, (255,255,255))
-            self.screen.blit(self.txt_surface,(400,200,100,30))
-            if self.button.mouse_isOver():
-                self.button.set_active(True)
-                self.getSendClick()
+            self.screen.blit(self.txt_surface,(400-self.txt_surface.get_width()/2,230,100,30))
+            if self.btnSend.mouse_isOver():
+                self.btnSend.set_active(True)
             else:
-                self.button.set_active(False)
+                self.btnSend.set_active(False)
+            
+            if self.btnBack.mouse_isOver():
+                self.btnBack.set_active(True)
+            else:
+                self.btnBack.set_active(False)
+    
+    def draw(self):
+        self.txtInput.draw()
+        self.btnSend.draw()
+        self.btnBack.draw()
+
     def setActive(self):
         self.active = not self.active
     
@@ -221,24 +234,23 @@ class PauseMenu:
         return self.txtInput.active
     
     def getSendClick(self):
-       return pygame.mouse.get_pressed()[0] and self.button.mouse_isOver()
+       return pygame.mouse.get_pressed()[0] and self.btnSend.mouse_isOver()
 
 class Title:
     def __init__(self,screen,pos) -> None:
         self.screen = screen
-        self.sprite = pygame.image.load("assets/ui/menu/title.png").convert_alpha()
+        self.sprite = pygame.image.load("assets/ui/menu/title2.png").convert_alpha()
         self.size = self.sprite.get_size()
         self.rect = self.sprite.get_rect()
         self.pos = pos
-        self.rect.x = self.pos[0]-self.rect.w/2
+        self.rect.x = self.pos[0]
         self.rect.y = self.pos[1]
-        self.scale = 3
+        self.scale = 4
         self.time = 0
+        self.image = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
     
-    def draw(self):
-        self.time += 1/30
-        self.image = pygame.transform.rotate(self.sprite,degrees(sin(self.time))/20*0)
-        self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
+    def draw(self,dt):
+        self.time += dt * 1/20
         self.rect.y = self.pos[1]+cos(self.time)*10
 
 
@@ -256,8 +268,8 @@ class Background:
         self.sprite = pygame.transform.scale(self.sprite, (self.size[0]*self.scale, self.size[1]*self.scale))
         
 
-    def draw(self,dinamicSpeed=[0,0]):
-        self.pos[0] += self.speed[0]+dinamicSpeed[0]
+    def draw(self,dt,dinamicSpeed=[0,0]):
+        self.pos[0] += (self.speed[0]+dinamicSpeed[0])*dt
         self.rect.x = self.pos[0]
 
         infRect = pygame.Rect(self.pos[0]-self.size[0]*self.scale,self.pos[1],self.size[0]*self.scale,self.size[1]*self.scale)
@@ -273,32 +285,22 @@ class Background:
         self.screen.blit(self.sprite,infRect)
         self.screen.blit(self.sprite,infRect2)
 
-class Inventory:
-    def __init__(self,screen,database):
+class WorldText:
+    def __init__(self,screen,color,worldPos,fontSize,database,text) -> None:
         self.screen = screen
         self.database = database
+        self.text = text
+        self.color = color
+        self.pos = worldPos
         self.scale = self.database.get_sprite_scale()
-        self.backgroundSprite = pygame.image.load("assets/ui/inventory/inventory_bar.png").convert_alpha()
-        self.slotSprite = pygame.image.load("assets/ui/inventory/inventory_slot.png").convert_alpha()
-
-        self.pos = self.screen.get_width()/2-self.backgroundSprite.get_width()/2,self.screen.get_height()-self.backgroundSprite.get_height()/2*self.scale
-        self.sizeBG = [48,48]
-        self.sizeSlot = [16,16]
-        self.items = [None,None,None,None]
-        self.active = 0
-        self.rect = pygame.Rect(self.pos[0],self.pos[1],self.sizeBG[0],self.sizeBG[1])
-
-        self.backgroundSprite = pygame.transform.scale(self.backgroundSprite, (self.sizeBG[0]*self.scale, self.sizeBG[1]*self.scale))
-        self.slotSprite = pygame.transform.scale(self.slotSprite, (self.sizeSlot[0]*self.scale, self.sizeSlot[1]*self.scale))
+        self.sizeY = fontSize*self.scale
+        pygame.font.init()
+        self.font = pygame.font.Font("assets/invasion2000.ttf",self.sizeY)
+        self.txtRender = self.font.render(self.text,True,self.color)
+        self.size = self.txtRender.get_rect().width,self.txtRender.get_rect().height
+        self.txtRender = self.font.render(self.text,True,self.color)
     
-    def draw(self):
-        self.screen.blit(self.backgroundSprite,self.rect)
-        for i in range(4):
-            slotPos = [self.pos[0]+sin(radians(i*90))*self.scale*21+self.scale*16,
-                       self.pos[1]+cos(radians(i*90))*self.scale*21+self.scale*16]
-            newRect = slotPos[0],slotPos[1],self.sizeSlot[0],self.sizeSlot[1]
-            self.screen.blit(self.slotSprite,newRect)
+    def draw(self,scroll):
+        npos = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
+        self.screen.blit(self.txtRender,npos)
 
-
-    def update(self):
-        pass

@@ -5,17 +5,25 @@ class Umbrella:
     def __init__(self,screen,database) -> None:
         self.screen = screen
         self.database = database
+        self.scale = self.database.get_sprite_scale()
+        self.color = self.database.getColor()
+        self.size = [16*self.scale,16*self.scale]
         self.sprites = []
-        self.sprites.append(pygame.image.load("assets/items/umbrella/umbrella1.png"))
-        self.sprites.append(pygame.image.load("assets/items/umbrella/umbrella2.png"))
-        self.sprites.append(pygame.image.load("assets/items/umbrella/umbrella3.png"))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella2.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella3.png").convert_alpha(),self.size),self.color,(255,255,255,255)))
+
+        self.spriteShadow = []
+        self.spriteShadow.append(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1Shadow1.png").convert_alpha(),[18*self.scale,18*self.scale]))
+        self.spriteShadow.append(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1Shadow2.png").convert_alpha(),[18*self.scale,18*self.scale]))
+        self.spriteShadow.append(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1Shadow3.png").convert_alpha(),[18*self.scale,18*self.scale]))
+
+        
         self.frameCount = 0
         self.currentSprite = 0
         self.image = self.sprites[self.currentSprite]
-        self.scale = self.database.get_sprite_scale()
         
         self.pos = [0,0]
-        self.size = [16*self.scale,16*self.scale]
         self.currentOffset = [0,0]
         self.offsetClosed = [8*self.scale,4*self.scale]
         self.offsetOpen = [0,16*self.scale]
@@ -23,9 +31,11 @@ class Umbrella:
         self.angleSpeed = 30
         self.idleFrame = 0
 
-    def run(self,playerPos,scroll,isOpen,isFacingLeft,color=(0,0,0)):
-        self.idleFrame = (self.idleFrame+3) % 360
+    def run(self,playerPos,scroll,isOpen,isFacingLeft,dt):
+        if self.color != self.database.getColor():
+            self.updateColor()
 
+        self.idleFrame = (self.idleFrame+(dt*3)) % 360
         if isOpen:
             self.currentOffset[0] += self.offsetOpen[0]-self.currentOffset[0] * 0.75
             self.currentOffset[1] += self.offsetOpen[1]-self.currentOffset[1] * 0.75
@@ -46,19 +56,21 @@ class Umbrella:
                 self.frameCount = 0
 
         if isOpen:
-            self.angle += (180 - self.angle) * 0.4
+            self.angle += (180 - self.angle) * 0.4 * dt
         else:
-            self.angle += (0 - self.angle) * 0.4
+            self.angle += (0 - self.angle) * 0.4 * dt
 
         self.pos = playerPos[0]-scroll[0]-self.currentOffset[0]+isFacingLeft*16*self.scale*(not isOpen)-math.cos(math.radians(self.idleFrame))*self.scale,playerPos[1]-scroll[1]-self.currentOffset[1]-math.sin(math.radians(self.idleFrame))*self.scale
 
-        self.image = pygame.transform.rotate(self.sprites[self.currentSprite],self.angle)
-        self.image = pygame.transform.scale(self.image,(self.size))
+        image = pygame.transform.rotate(self.sprites[self.currentSprite],self.angle)
+        imageShadow = pygame.transform.rotate(self.spriteShadow[self.currentSprite],self.angle)
 
-        newRect = pygame.Rect((self.pos[0],self.pos[1]),(self.size[0],self.size[1]))
-        colorImage = self.set_mask_color(self.image,(0,0,0,255),(color[0],color[1],color[2],255))
-        self.drawShadow(self.image)
-        self.screen.blit(colorImage, newRect)
+
+        newRect = self.pos[0]-self.scale,self.pos[1]-self.scale
+
+
+        self.screen.blit(imageShadow,newRect)
+        self.screen.blit(image, self.pos)
 
     def draw(self):
         pass
@@ -102,16 +114,28 @@ class Umbrella:
         return nsurface
     def get_sprite(self):
         return pygame.transform.scale(self.sprites[self.currentSprite],(self.size))
+    
+    def updateColor(self):
+        self.color = self.database.getColor()
+        self.size = [16*self.scale,16*self.scale]
+        self.sprites = []
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella1.png").convert_alpha(),self.size),(0,0,0,255),self.color))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella2.png").convert_alpha(),self.size),(0,0,0,255),self.color))
+        self.sprites.append(self.set_mask_color(pygame.transform.scale(pygame.image.load("assets/items/umbrella/umbrella3.png").convert_alpha(),self.size),(0,0,0,255),self.color))
+
 
 class Coin:
     def __init__(self, screen, pos,database,value=50):
         self.screen = screen
         self.database = database
         self.pos = pos
-        self.size = [8,8]
-        self.scale = self.database.get_sprite_scale()
         self.value = value
+        self.scale = self.database.get_sprite_scale()
+        self.sprite = pygame.image.load("assets/tiles/Tile_Gold.png").convert()
+        self.size = [16,16]
+        self.scaled = pygame.transform.scale(self.sprite,(self.size[0]*self.scale,self.size[1]*self.scale))
         self.rect = pos[0],pos[1],self.size[0],self.size[1]
+
 
     def get_value(self):
         return self.value
@@ -120,8 +144,8 @@ class Coin:
         return self.rect
 
     def draw(self,scroll):
-        newRect = pygame.Rect(self.pos[0]-scroll[0],self.pos[1]-scroll[1],self.size[0]*self.scale,self.size[1]*self.scale)
-        pygame.draw.rect(self.screen,(255,0,0),newRect)
+        newRect = self.pos[0]-scroll[0],self.pos[1]-scroll[1]
+        self.screen.blit(self.scaled,newRect)
 
 class Hook:
     def __init__(self, screen, pos, angle,database) -> None:
@@ -133,16 +157,17 @@ class Hook:
         self.fowardSpeed = 8
         self.state = "moving"
         self.scale = self.database.get_sprite_scale()
+        self.color = self.database.getColor()
         self.size = [8*self.scale,8*self.scale]
         self.ropeSize = [4*self.scale,4*self.scale]
         self.ropeSpacing = 1*self.scale
-        self.hookSprite = pygame.image.load("assets/misc/hook/hook_graple.png")
-        self.ropeSprite = pygame.image.load("assets/misc/hook/hook_rope.png")
+        self.hookSprite = pygame.image.load("assets/items/hook/hook_graple.png")
+        self.ropeSprite = pygame.image.load("assets/items/hook/hook_rope.png")
         self.rect = pygame.rect.Rect((self.pos[0],self.pos[1]),(self.size[0],self.size[0]))
         self.distance = 0
         self.hookAngle = 0
 
-    def update(self,tiles,plrpos):
+    def update(self,tiles,plrpos,dt):
         self.distance = math.sqrt((plrpos[0]-self.pos[0]+7*self.scale)**2+(plrpos[1]-self.pos[1]+16*self.scale)**2)
         self.hookAngle = math.atan2(plrpos[1]-self.pos[1]+16*self.scale,plrpos[0]-self.pos[0]+7*self.scale)
         if self.state == "moving":
@@ -152,15 +177,17 @@ class Hook:
                     self.state = "attached"
 
         elif self.state == "retracted":
-            self.pos =  self.pos[0]+(self.returnSpeed*math.cos(self.hookAngle)*self.scale), self.pos[1]+self.returnSpeed*math.sin(self.hookAngle)*self.scale
-            if self.distance <= 24: # distance should be less than backspd to avoid bugs
+            self.pos =  self.pos[0]+(self.returnSpeed*math.cos(self.hookAngle)*self.scale)*dt, self.pos[1]+self.returnSpeed*math.sin(self.hookAngle)*self.scale*dt
+            if self.distance <= self.returnSpeed*2: # distance should be less than backspd to avoid bugs
                 self.state = "dead"
         
         elif self.state == "attached":
-            return -math.cos(math.pi*2-self.hookAngle),math.sin(math.pi*2-self.hookAngle)
+            pass
 
         self.rect.update(self.pos[0],self.pos[1],self.size[0],self.size[1])
         
+    def get_angle(self):
+        return -math.cos(math.pi*2-self.hookAngle),math.sin(math.pi*2-self.hookAngle)
 
     def set_state(self,state):
         self.state = state
@@ -170,9 +197,9 @@ class Hook:
         self.hookSprite = pygame.transform.scale(self.hookSprite,(self.size))
         self.screen.blit(self.hookSprite, newRect)
         
-        pygame.draw.line(self.screen,(93,53,15),
+        pygame.draw.line(self.screen,self.color,
                          (self.pos[0]-scroll[0],self.pos[1]-scroll[1]),
-                         (plrpos[0]-scroll[0]+7*self.scale,plrpos[1]-scroll[1]+16*self.scale), self.scale)
+                         (plrpos[0]-scroll[0]+7*self.scale,plrpos[1]-scroll[1]+16*self.scale), int(self.scale))
 
         dis = math.sqrt(((plrpos[0]-self.pos[0])**2+(plrpos[1]-self.pos[1])**2))
         amount =  dis //(self.ropeSize[0]+self.ropeSpacing*2)
